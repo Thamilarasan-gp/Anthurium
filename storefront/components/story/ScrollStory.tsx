@@ -175,7 +175,6 @@ export default function ScrollStory() {
   const [isFirstFrameLoaded, setIsFirstFrameLoaded] = useState<boolean>(false);
   const [isReducedMotion, setIsReducedMotion] = useState<boolean>(false);
   const [scrollHintVisible, setScrollHintVisible] = useState<boolean>(true);
-  const [isCtaVisible, setIsCtaVisible] = useState<boolean>(false);
   const [isMobileState, setIsMobileState] = useState<boolean>(false);
 
   // Helper to format frame filename
@@ -405,9 +404,11 @@ export default function ScrollStory() {
       // Preload frames ahead in scroll direction
       updatePreloadQueue(Math.round(targetFrameRef.current), direction, isMobileRef.current);
 
-      // Dismiss scroll hint once scrolling commences
+      // Dismiss scroll hint once scrolling commences, restore if scrolled back to top
       if (progress > 0.02 && scrollHintVisible) {
         setScrollHintVisible(false);
+      } else if (progress <= 0.008 && !scrollHintVisible) {
+        setScrollHintVisible(true);
       }
     };
 
@@ -450,13 +451,16 @@ export default function ScrollStory() {
         drawFrameToCanvas(roundedFrame, currentProgressRef.current);
       }
 
-      // Track active chapter for counter badge (graceful tracking through buffer gaps)
+      // Track active chapter for counter badge (symmetrical midpoint distance for forward & backward consistency)
       const activeP = currentProgressRef.current;
       let curIdx = 0;
-      for (let i = STORY_CHAPTERS.length - 1; i >= 0; i--) {
-        if (activeP >= STORY_CHAPTERS[i].startProgress) {
+      let minDistance = Infinity;
+      for (let i = 0; i < STORY_CHAPTERS.length; i++) {
+        const mid = (STORY_CHAPTERS[i].startProgress + STORY_CHAPTERS[i].endProgress) / 2;
+        const dist = Math.abs(activeP - mid);
+        if (dist < minDistance) {
+          minDistance = dist;
           curIdx = i;
-          break;
         }
       }
 
@@ -464,9 +468,6 @@ export default function ScrollStory() {
         lastReportedChapterRef.current = curIdx;
         setActiveChapterIndex(curIdx);
       }
-
-      // Reveal CTA when final kurthi hero moment is reached
-      setIsCtaVisible(activeP >= 0.85);
 
       rafIdRef.current = requestAnimationFrame(renderLoop);
     };
@@ -633,10 +634,18 @@ export default function ScrollStory() {
   const ch3Sequence = getChapter3SequentialTransforms(currentP);
 
   // Helper for responsive typography placement on Desktop vs Mobile
-  const getDesktopPlacementClasses = (pos: StoryChapter['desktopPosition'], isCh3: boolean = false) => {
+  const getDesktopPlacementClasses = (
+    pos: StoryChapter['desktopPosition'],
+    isCh3: boolean = false,
+    isCh5: boolean = false
+  ) => {
     if (isCh3) {
       // Chapter 03: Restrained left-side safe zone (max 35-40% viewport width)
       return 'md:bottom-28 lg:bottom-32 md:left-14 lg:left-24 md:max-w-[420px] md:text-left md:items-start';
+    }
+    if (isCh5) {
+      // Chapter 05: Generously spaced from bottom edge with refined width
+      return 'md:bottom-24 lg:bottom-28 md:left-14 lg:left-24 md:max-w-[400px] md:text-left md:items-start';
     }
     switch (pos) {
       case 'top-left':
@@ -646,18 +655,22 @@ export default function ScrollStory() {
       case 'bottom-left':
         return 'md:bottom-28 lg:bottom-32 md:left-14 lg:left-24 md:max-w-[420px] md:text-left md:items-start';
       case 'center-left':
-        return 'md:top-1/2 md:-translate-y-1/2 md:left-14 lg:left-24 md:max-w-[440px] md:text-left md:items-start';
+        return 'md:bottom-24 lg:bottom-28 md:left-14 lg:left-24 md:max-w-[400px] md:text-left md:items-start';
       default:
         return 'md:top-24 md:left-14 lg:left-24 md:max-w-[420px] md:text-left md:items-start';
     }
   };
 
-  const getMobilePlacementClasses = (pos: StoryChapter['mobilePosition']) => {
+  const getMobilePlacementClasses = (pos: StoryChapter['mobilePosition'], isCh5: boolean = false) => {
+    if (isCh5) {
+      // Chapter 05: Extra breathing room from screen bottom so button is well above navigation bar
+      return 'bottom-20 sm:bottom-24 inset-x-5 sm:inset-x-8 max-w-[88vw] text-left items-start';
+    }
     switch (pos) {
       case 'top':
         return 'top-14 sm:top-16 inset-x-5 sm:inset-x-8 max-w-[88vw] text-left items-start';
       case 'bottom':
-        return 'bottom-12 sm:bottom-14 inset-x-5 sm:inset-x-8 max-w-[88vw] text-left items-start';
+        return 'bottom-14 sm:bottom-16 inset-x-5 sm:inset-x-8 max-w-[88vw] text-left items-start';
       default:
         return 'top-14 sm:top-16 inset-x-5 sm:inset-x-8 max-w-[88vw] text-left items-start';
     }
@@ -896,12 +909,14 @@ export default function ScrollStory() {
           const { opacity, translateY, isVisible } = getChapterTransform(ch, currentP);
           if (!isVisible) return null;
 
+          const isCh5 = ch.id === 5;
+
           return (
             <div
               key={ch.id}
               className={`absolute z-20 flex flex-col pointer-events-none transition-transform duration-300 ease-out ${isMobileState
-                ? getMobilePlacementClasses(ch.mobilePosition)
-                : getDesktopPlacementClasses(ch.desktopPosition)
+                ? getMobilePlacementClasses(ch.mobilePosition, isCh5)
+                : getDesktopPlacementClasses(ch.desktopPosition, false, isCh5)
                 }`}
               style={{
                 opacity,
@@ -913,18 +928,22 @@ export default function ScrollStory() {
               <div className="space-y-2 sm:space-y-3 max-w-full">
                 {/* Eyebrow */}
                 <div className="inline-flex items-center space-x-2">
-                  <span className="text-[9.5px] sm:text-[11px] font-bold uppercase tracking-[0.2em] sm:tracking-[0.28em] text-[#E8D3BA] drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)]">
+                  <span className="text-[9.5px] sm:text-[11px] font-bold uppercase tracking-[0.2em] sm:tracking-[0.28em] text-[#E8D3BA] drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)]">
                     {ch.eyebrow}
                   </span>
                 </div>
 
-                {/* Editorial Headline */}
+                {/* Editorial Headline (Restrained, smaller elegant scale for Chapter 05) */}
                 <h2
                   style={{
-                    fontSize: isMobileState ? 'clamp(32px, 9vw, 44px)' : undefined,
-                    lineHeight: 1.02
+                    fontSize: isCh5
+                      ? (isMobileState ? 'clamp(22px, 6vw, 28px)' : 'clamp(26px, 3vw, 36px)')
+                      : (isMobileState ? 'clamp(32px, 9vw, 44px)' : undefined),
+                    lineHeight: isCh5 ? 1.15 : 1.02
                   }}
-                  className="font-editorial font-bold text-[#FFFDF9] tracking-tight drop-shadow-[0_2px_8px_rgba(0,0,0,0.55)] whitespace-pre-line text-3xl sm:text-4xl lg:text-5xl"
+                  className={`font-editorial font-bold text-[#FFFDF9] tracking-tight drop-shadow-[0_2px_12px_rgba(0,0,0,0.85)] drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)] whitespace-pre-line ${
+                    isCh5 ? 'text-2xl sm:text-3xl lg:text-4xl' : 'text-3xl sm:text-4xl lg:text-5xl'
+                  }`}
                 >
                   {isMobileState && ch.mobileHeading ? ch.mobileHeading : ch.heading}
                 </h2>
@@ -932,29 +951,36 @@ export default function ScrollStory() {
                 {/* Supporting Copy */}
                 <p
                   style={{
-                    fontSize: isMobileState ? 'clamp(13px, 3.8vw, 15px)' : undefined,
+                    fontSize: isMobileState ? (isCh5 ? 'clamp(12px, 3.4vw, 14px)' : 'clamp(13px, 3.8vw, 15px)') : undefined,
                     lineHeight: 1.5
                   }}
-                  className="text-[#F5EFEB]/90 font-light whitespace-pre-line drop-shadow-[0_1px_3px_rgba(0,0,0,0.45)] text-xs sm:text-sm lg:text-base max-w-sm lg:max-w-md"
+                  className="text-[#F5EFEB]/95 font-light whitespace-pre-line drop-shadow-[0_1px_4px_rgba(0,0,0,0.7)] text-xs sm:text-sm lg:text-base max-w-sm lg:max-w-md"
                 >
                   {isMobileState && ch.mobileSupportingText ? ch.mobileSupportingText : ch.supportingText}
                 </p>
 
                 {/* Small Detail Line */}
                 {ch.detailLine && (
-                  <div className="text-[9.5px] sm:text-xs uppercase tracking-[0.22em] font-semibold text-[#E8D3BA]/90 pt-1 drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)]">
+                  <div className="text-[9.5px] sm:text-xs uppercase tracking-[0.22em] font-semibold text-[#E8D3BA]/95 pt-1 drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)]">
                     {ch.detailLine}
                   </div>
                 )}
 
-                {/* Final Hero Call-to-Action (Revealed on Chapter 5) */}
-                {ch.id === 5 && isCtaVisible && (
-                  <div className="pt-4 sm:pt-6 pointer-events-auto">
+                {/* Final Hero Call-to-Action (Smooth bidirectional fade on Chapter 5 with generous spacing) */}
+                {isCh5 && (
+                  <div
+                    className="pt-7 sm:pt-9 pointer-events-auto transition-all duration-500 ease-out"
+                    style={{
+                      opacity: Math.max(0, Math.min(1, (currentP - 0.86) / 0.05)),
+                      transform: `translateY(${Math.max(0, (1 - Math.max(0, Math.min(1, (currentP - 0.86) / 0.05))) * 12)}px)`,
+                      pointerEvents: currentP >= 0.88 ? 'auto' : 'none'
+                    }}
+                  >
                     <Link
                       href="/shop?category=kurtis"
                       prefetch={true}
-                      className="inline-flex items-center space-x-3 bg-botanical hover:bg-botanical-dark text-ivory px-8 sm:px-10 py-3.5 sm:py-4 rounded-full text-xs font-bold uppercase tracking-[0.22em] shadow-2xl border border-champagne/40 transition-all duration-300 transform hover:scale-105 active:scale-95"
-                      style={{ minHeight: '48px' }}
+                      className="inline-flex items-center space-x-3 bg-botanical hover:bg-botanical-dark text-ivory px-7 sm:px-9 py-3 sm:py-3.5 rounded-full text-[11px] sm:text-xs font-bold uppercase tracking-[0.22em] shadow-2xl border border-champagne/40 transition-all duration-300 transform hover:scale-105 active:scale-95"
+                      style={{ minHeight: '46px' }}
                     >
                       <span>EXPLORE KURTHIS</span>
                       <ArrowRight className="w-4 h-4 text-champagne" />
