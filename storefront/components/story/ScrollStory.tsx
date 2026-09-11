@@ -899,11 +899,10 @@ export default function ScrollStory() {
           return (
             <div
               key={ch.id}
-              className={`absolute z-20 flex flex-col pointer-events-none transition-transform duration-300 ease-out ${
-                isMobileState
+              className={`absolute z-20 flex flex-col pointer-events-none transition-transform duration-300 ease-out ${isMobileState
                   ? getMobilePlacementClasses(ch.mobilePosition)
                   : getDesktopPlacementClasses(ch.desktopPosition)
-              }`}
+                }`}
               style={{
                 opacity,
                 transform: `translateY(${translateY}px)`,
