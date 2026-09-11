@@ -10,6 +10,7 @@ import { InstagramDrawer } from '../components/social/InstagramDrawer';
 import { useMusic } from '../components/providers/MusicContext';
 import { useStoreConfig } from '../components/providers/StoreConfigContext';
 import { ScrollReveal, StaggerContainer, StaggerItem } from '../components/motion/ScrollReveal';
+import ScrollStory from '../components/story/ScrollStory';
 
 export default function HomePage() {
   const { config } = useStoreConfig();
@@ -321,7 +322,10 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* SECTION 4 — INSTAGRAM-FIRST EXPERIENCE ("Latest from Our Instagram") */}
+      {/* SECTION 4 — CINEMATIC CRAFTSMANSHIP STORY: FROM FABRIC TO HER STORY */}
+      <ScrollStory />
+
+      {/* SECTION 5 — INSTAGRAM-FIRST EXPERIENCE ("Latest from Our Instagram") */}
       <section className="bg-cream/60 py-16 border-y border-rose-100/60">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <ScrollReveal variant="fade-up" duration={0.5} className="text-center max-w-xl mx-auto space-y-2 mb-12">
