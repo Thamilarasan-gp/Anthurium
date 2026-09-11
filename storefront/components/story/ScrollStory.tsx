@@ -33,8 +33,8 @@ const STORY_CHAPTERS: StoryChapter[] = [
     detailLine: 'Selected with intention.',
     startProgress: 0.0,
     peakStart: 0.0,
-    peakEnd: 0.09,
-    endProgress: 0.13,
+    peakEnd: 0.16,
+    endProgress: 0.20,
     desktopPosition: 'top-left',
     mobilePosition: 'top'
   },
@@ -47,10 +47,10 @@ const STORY_CHAPTERS: StoryChapter[] = [
     supportingText: 'Measured, shaped and carefully prepared for the silhouette it will become.',
     mobileSupportingText: 'Measured. Shaped. Prepared.',
     detailLine: 'EVERY LINE HAS A PURPOSE.',
-    startProgress: 0.17,
-    peakStart: 0.20,
-    peakEnd: 0.27,
-    endProgress: 0.31,
+    startProgress: 0.20,
+    peakStart: 0.24,
+    peakEnd: 0.34,
+    endProgress: 0.38,
     desktopPosition: 'top-right',
     mobilePosition: 'bottom'
   },
@@ -63,10 +63,10 @@ const STORY_CHAPTERS: StoryChapter[] = [
     supportingText: 'Stitched slowly.\nFinished with intention.',
     mobileSupportingText: 'Stitched slowly.\nFinished with intention.',
     detailLine: 'MADE TO BE FELT.',
-    startProgress: 0.35,
+    startProgress: 0.38,
     peakStart: 0.44,
-    peakEnd: 0.56,
-    endProgress: 0.65,
+    peakEnd: 0.58,
+    endProgress: 0.66,
     desktopPosition: 'bottom-left',
     mobilePosition: 'bottom'
   },
@@ -79,10 +79,10 @@ const STORY_CHAPTERS: StoryChapter[] = [
     supportingText: 'From the smallest stitch to the final finishing touch.',
     mobileSupportingText: 'From the smallest stitch to the final touch.',
     detailLine: 'CRAFTED FOR HER.',
-    startProgress: 0.68,
-    peakStart: 0.71,
-    peakEnd: 0.78,
-    endProgress: 0.82,
+    startProgress: 0.66,
+    peakStart: 0.70,
+    peakEnd: 0.80,
+    endProgress: 0.84,
     desktopPosition: 'top-left',
     mobilePosition: 'bottom'
   },
@@ -95,7 +95,7 @@ const STORY_CHAPTERS: StoryChapter[] = [
     supportingText: 'A piece of craftsmanship, made to become part of her story.',
     mobileSupportingText: 'Wear your story.',
     detailLine: 'WEAR YOUR STORY.',
-    startProgress: 0.85,
+    startProgress: 0.84,
     peakStart: 0.88,
     peakEnd: 1.0,
     endProgress: 1.0,
@@ -105,42 +105,41 @@ const STORY_CHAPTERS: StoryChapter[] = [
 ];
 
 // Non-linear cinematic pacing function:
-// Chapter 03 ("THE CRAFT" - sewing needle & stitchwork) receives 32% of total vertical scroll distance,
+// Chapter 03 ("THE CRAFT" - sewing needle & stitchwork) receives 28% of total vertical scroll distance,
 // making its visual frame progression 2.5x–3x slower perceptually for a meditative artisan experience.
 function progressToCinematicFrame(p: number, totalFrames: number): number {
   const maxF = totalFrames - 1;
   if (p <= 0) return 0;
   if (p >= 1) return maxF;
 
-  // 0.00 -> 0.16: Chapter 1 - Fabric opening (frames 0 to ~36)
-  if (p < 0.16) {
-    const t = p / 0.16;
-    return (t * 0.15) * maxF;
+  // 0.00 -> 0.20: Chapter 1 - Fabric opening (frames 0 to ~40)
+  if (p < 0.20) {
+    const t = p / 0.20;
+    return (t * 0.17) * maxF;
   }
-  // 0.16 -> 0.34: Chapter 2 - Cutting with purpose (frames ~36 to ~82)
-  else if (p < 0.34) {
-    const t = (p - 0.16) / 0.18;
-    return (0.15 + t * 0.19) * maxF;
+  // 0.20 -> 0.38: Chapter 2 - Cutting with purpose (frames ~40 to ~86)
+  else if (p < 0.38) {
+    const t = (p - 0.20) / 0.18;
+    return (0.17 + t * 0.19) * maxF;
   }
-  // 0.34 -> 0.66: Chapter 3 - THE CRAFT (Sewing needle, stitch, thread) - 32% OF SCROLL!
-  // Covers frames ~82 to ~136 (only ~54 frames across 32% of scroll distance = ~2.7x slower per pixel)
+  // 0.38 -> 0.66: Chapter 3 - THE CRAFT (Sewing needle, stitch, thread) - 28% OF SCROLL!
   else if (p < 0.66) {
-    const t = (p - 0.34) / 0.32;
-    return (0.34 + t * 0.22) * maxF;
+    const t = (p - 0.38) / 0.28;
+    return (0.36 + t * 0.22) * maxF;
   }
-  // 0.66 -> 0.83: Chapter 4 - Details matter & embroidery (frames ~136 to ~186)
-  else if (p < 0.83) {
-    const t = (p - 0.66) / 0.17;
-    return (0.56 + t * 0.21) * maxF;
+  // 0.66 -> 0.84: Chapter 4 - Details matter & embroidery (frames ~139 to ~187)
+  else if (p < 0.84) {
+    const t = (p - 0.66) / 0.18;
+    return (0.58 + t * 0.20) * maxF;
   }
-  // 0.83 -> 0.91: Chapter 5 - Kurthi reveal
-  else if (p < 0.91) {
-    const t = (p - 0.83) / 0.08;
-    return (0.77 + t * 0.14) * maxF;
+  // 0.84 -> 0.92: Chapter 5 - Kurthi reveal
+  else if (p < 0.92) {
+    const t = (p - 0.84) / 0.08;
+    return (0.78 + t * 0.13) * maxF;
   }
-  // 0.91 -> 1.00: Final hero ease-out pause
+  // 0.92 -> 1.00: Final hero ease-out pause
   else {
-    const t = (p - 0.91) / 0.09;
+    const t = (p - 0.92) / 0.08;
     const easeT = 1 - Math.pow(1 - t, 2.2);
     return (0.91 + easeT * 0.09) * maxF;
   }
@@ -426,8 +425,8 @@ export default function ScrollStory() {
       const diff = targetF - currentF;
       const p = currentProgressRef.current;
 
-      // Detect if currently in Chapter 03 craftsman zone (0.34 to 0.66)
-      const isChapter3 = p >= 0.34 && p <= 0.66;
+      // Detect if currently in Chapter 03 craftsman zone (0.38 to 0.66)
+      const isChapter3 = p >= 0.38 && p <= 0.66;
 
       // Silky damping: 0.030 for Chapter 3 (2.5x slower), 0.055 for other chapters
       const damping = isChapter3 ? 0.030 : 0.055;
@@ -585,10 +584,10 @@ export default function ScrollStory() {
       return { opacity: 1, translateY: 0 };
     };
 
-    const eyebrow = calcLayer(0.350, 0.385, 0.615, 0.650, 0);
-    const heading = calcLayer(0.385, 0.425, 0.580, 0.615, 12);
-    const supporting = calcLayer(0.425, 0.465, 0.540, 0.580, 0);
-    const secondary = calcLayer(0.465, 0.500, 0.505, 0.540, 0);
+    const eyebrow = calcLayer(0.380, 0.420, 0.620, 0.660, 0);
+    const heading = calcLayer(0.415, 0.455, 0.580, 0.620, 12);
+    const supporting = calcLayer(0.455, 0.495, 0.540, 0.580, 0);
+    const secondary = calcLayer(0.490, 0.525, 0.535, 0.560, 0);
 
     const isVisible =
       eyebrow.opacity > 0.01 ||
