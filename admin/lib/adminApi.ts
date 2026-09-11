@@ -12,7 +12,16 @@ import {
   Banner
 } from '@shared/types';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+function getApiBaseUrl(): string {
+  let url = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api').trim();
+  url = url.replace(/\/+$/, '');
+  if (!url.startsWith('http://') && !url.startsWith('https://')) {
+    url = `https://${url}`;
+  }
+  return url;
+}
+
+const API_BASE_URL = getApiBaseUrl();
 
 async function fetchAdminAPI<T>(endpoint: string, options: RequestInit = {}): Promise<{ success: boolean; message?: string; [key: string]: any }> {
   try {
