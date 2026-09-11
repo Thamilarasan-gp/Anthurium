@@ -68,7 +68,7 @@ export default function HomePage() {
     primaryCtaLink: '/shop',
     secondaryCtaText: 'Play Our Story',
     secondaryCtaLink: '/lookbook',
-    desktopImageUrl: 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=1600&q=80',
+    desktopImageUrl: 'https://res.cloudinary.com/jrpuc4bx/image/upload/v1789061799/anthurium/zqptzwmzuphpslepwbq4.png',
     sideText: 'Good Outfits. Better Moods.',
     displayOrder: 1,
     isActive: true,
@@ -114,11 +114,10 @@ export default function HomePage() {
     <div className="space-y-20 pb-20">
       {/* SECTION 1 — EDITORIAL HERO CAROUSEL */}
       <section
-        className={`relative flex items-center justify-center overflow-hidden bg-cream/40 group ${
-          hasAnnouncement
-            ? 'min-h-[calc(100svh-36px)] sm:min-h-[calc(100vh-36px)]'
-            : 'min-h-[100svh] sm:min-h-[100vh]'
-        }`}
+        className={`relative flex items-center justify-center overflow-hidden bg-cream/40 group ${hasAnnouncement
+          ? 'min-h-[calc(100svh-36px)] sm:min-h-[calc(100vh-36px)]'
+          : 'min-h-[100svh] sm:min-h-[100vh]'
+          }`}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
