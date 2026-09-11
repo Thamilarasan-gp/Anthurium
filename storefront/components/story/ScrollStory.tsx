@@ -450,17 +450,19 @@ export default function ScrollStory() {
         drawFrameToCanvas(roundedFrame, currentProgressRef.current);
       }
 
-      // Track active chapter for counter badge (symmetrical midpoint distance for forward & backward consistency)
+      // Track active chapter for typography and counter badge (precise progress thresholds)
       const activeP = currentProgressRef.current;
       let curIdx = 0;
-      let minDistance = Infinity;
-      for (let i = 0; i < STORY_CHAPTERS.length; i++) {
-        const mid = (STORY_CHAPTERS[i].startProgress + STORY_CHAPTERS[i].endProgress) / 2;
-        const dist = Math.abs(activeP - mid);
-        if (dist < minDistance) {
-          minDistance = dist;
-          curIdx = i;
-        }
+      if (activeP < 0.20) {
+        curIdx = 0;
+      } else if (activeP < 0.38) {
+        curIdx = 1;
+      } else if (activeP < 0.66) {
+        curIdx = 2;
+      } else if (activeP < 0.84) {
+        curIdx = 3;
+      } else {
+        curIdx = 4;
       }
 
       if (curIdx !== lastReportedChapterRef.current) {
@@ -528,76 +530,6 @@ export default function ScrollStory() {
     );
   }
 
-  // Standard chapter transform calculation
-  const getChapterTransform = (ch: StoryChapter, p: number) => {
-    if (p < ch.startProgress || p > ch.endProgress) {
-      return { opacity: 0, translateY: 24, isVisible: false };
-    }
-
-    let opacity = 1;
-    let translateY = 0;
-
-    if (p < ch.peakStart) {
-      const t = (p - ch.startProgress) / (ch.peakStart - ch.startProgress || 0.01);
-      opacity = Math.max(0, Math.min(1, t));
-      translateY = Math.round((1 - t) * 20);
-    } else if (p > ch.peakEnd) {
-      const t = (p - ch.peakEnd) / (ch.endProgress - ch.peakEnd || 0.01);
-      opacity = Math.max(0, Math.min(1, 1 - t));
-      translateY = Math.round(-t * 15);
-    }
-
-    return { opacity, translateY, isVisible: opacity > 0.01 };
-  };
-
-  // Chapter 03 SPECIAL SEQUENTIAL TRANSFORMS:
-  // Layer 1: Eyebrow fades in first (0.340..0.380), holds, exits last (0.620..0.660)
-  // Layer 2: Main Heading fades + 12px upward movement (0.385..0.425), holds, exits (0.580..0.620)
-  // Layer 3: Supporting copy fades in (0.430..0.470), holds, exits (0.540..0.580)
-  // Layer 4: Secondary line fades in last (0.475..0.510), exits first (0.510..0.540)
-  // Reverses sequence on scroll-out; no bouncing, no scaling.
-  const getChapter3SequentialTransforms = (p: number) => {
-    const calcLayer = (
-      enterStart: number,
-      enterEnd: number,
-      exitStart: number,
-      exitEnd: number,
-      translateDistance: number = 0
-    ) => {
-      if (p < enterStart || p > exitEnd) {
-        return { opacity: 0, translateY: translateDistance };
-      }
-      if (p < enterEnd) {
-        const t = (p - enterStart) / (enterEnd - enterStart || 0.01);
-        return {
-          opacity: Math.max(0, Math.min(1, t)),
-          translateY: Math.round((1 - t) * translateDistance)
-        };
-      }
-      if (p > exitStart) {
-        const t = (p - exitStart) / (exitEnd - exitStart || 0.01);
-        return {
-          opacity: Math.max(0, Math.min(1, 1 - t)),
-          translateY: Math.round(-t * (translateDistance > 0 ? 8 : 0))
-        };
-      }
-      return { opacity: 1, translateY: 0 };
-    };
-
-    const eyebrow = calcLayer(0.380, 0.420, 0.620, 0.660, 0);
-    const heading = calcLayer(0.415, 0.455, 0.580, 0.620, 12);
-    const supporting = calcLayer(0.455, 0.495, 0.540, 0.580, 0);
-    const secondary = calcLayer(0.490, 0.525, 0.535, 0.560, 0);
-
-    const isVisible =
-      eyebrow.opacity > 0.01 ||
-      heading.opacity > 0.01 ||
-      supporting.opacity > 0.01 ||
-      secondary.opacity > 0.01;
-
-    return { eyebrow, heading, supporting, secondary, isVisible };
-  };
-
   // Helper to generate dynamic, subtle directional black gradient overlay (.story-overlay)
   // Functions as cinematic light shaping behind the active typography safe zone
   // Tuned with deeper black contrast where text sits, leaving craftsmanship vibrant
@@ -628,9 +560,7 @@ export default function ScrollStory() {
     }
   };
 
-  const currentP = currentProgressRef.current;
   const activeChapter = STORY_CHAPTERS[activeChapterIndex] || STORY_CHAPTERS[0];
-  const ch3Sequence = getChapter3SequentialTransforms(currentP);
 
   // Helper for responsive typography placement on Desktop vs Mobile
   const getDesktopPlacementClasses = (
@@ -743,52 +673,51 @@ export default function ScrollStory() {
           </div>
         </div>
 
-        {/* OVERLAPPING EDITORIAL CHAPTER TYPOGRAPHY */}
-        {STORY_CHAPTERS.map((ch) => {
+        {/* EDITORIAL CHAPTER TYPOGRAPHY (ALL 5 CHAPTERS ALWAYS PRESENT IN DOM) */}
+        {STORY_CHAPTERS.map((ch, idx) => {
+          const isActive = activeChapterIndex === idx;
+
           // CHAPTER 03 SPECIAL EDITORIAL TREATMENT:
           // 1. NO CARD / NO GLASSMORPHISM / NO RECTANGLE
           // 2. Warm ivory typography sitting directly in the photographic shadow
-          // 3. Sequential 4-layer fade & upward reveal with pauses: Eyebrow -> Heading (12px rise) -> Supporting text -> Secondary line
+          // 3. Staggered reveal: Eyebrow -> Heading -> Supporting text -> Secondary line
           // 4. On Mobile: Header at top safe area, Supporting text at bottom safe area, Needle & embroidery in center completely visible!
           // 5. On Desktop: Grouped in left safe zone (occupying ~35-40% viewport width)
           if (ch.id === 3) {
-            if (!ch3Sequence.isVisible) return null;
-
             if (isMobileState) {
               return (
                 <React.Fragment key={ch.id}>
                   {/* MOBILE TOP BLOCK: Eyebrow & Heading in upper safe zone */}
                   <div
-                    className="absolute z-20 flex flex-col pointer-events-none top-14 sm:top-16 inset-x-0"
+                    className={`absolute z-20 flex flex-col pointer-events-none top-14 sm:top-16 inset-x-0 transition-all duration-500 ease-out ${
+                      isActive ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2 pointer-events-none'
+                    }`}
                     style={{
                       paddingLeft: 'clamp(20px, 6vw, 32px)',
                       paddingRight: 'clamp(20px, 6vw, 32px)'
                     }}
                   >
                     <div className="space-y-1.5 pointer-events-none max-w-[88vw]">
-                      {/* Layer 1: Eyebrow (appears 1st, exits last) */}
+                      {/* Layer 1: Eyebrow (appears 1st) */}
                       <div
-                        style={{
-                          opacity: ch3Sequence.eyebrow.opacity
-                        }}
-                        className="transition-opacity duration-300 ease-out"
+                        className={`transition-all duration-500 ease-out ${
+                          isActive ? 'opacity-100 translate-y-0 delay-75' : 'opacity-0 translate-y-2'
+                        }`}
                       >
-                        <span className="text-[9.5px] font-bold uppercase tracking-[0.2em] text-[#E8D3BA] drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)]">
+                        <span className="text-[9.5px] font-bold uppercase tracking-[0.2em] text-[#E8D3BA] drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)]">
                           {ch.eyebrow}
                         </span>
                       </div>
 
-                      {/* Layer 2: Main Heading (appears 2nd with 12px upward movement, exits 2nd) */}
+                      {/* Layer 2: Main Heading */}
                       <div
-                        style={{
-                          opacity: ch3Sequence.heading.opacity,
-                          transform: `translateY(${ch3Sequence.heading.translateY}px)`
-                        }}
-                        className="transition-transform duration-300 ease-out"
+                        className={`transition-all duration-500 ease-out ${
+                          isActive ? 'opacity-100 translate-y-0 delay-150' : 'opacity-0 translate-y-2'
+                        }`}
                       >
                         <h2
                           style={{ fontSize: 'clamp(32px, 9vw, 44px)', lineHeight: 1.02 }}
-                          className="font-editorial font-bold text-[#FFFDF9] tracking-tight drop-shadow-[0_2px_8px_rgba(0,0,0,0.6)]"
+                          className="font-editorial font-bold text-[#FFFDF9] tracking-tight drop-shadow-[0_2px_12px_rgba(0,0,0,0.85)] drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)]"
                         >
                           {ch.mobileHeading || ch.heading}
                         </h2>
@@ -798,36 +727,36 @@ export default function ScrollStory() {
 
                   {/* MOBILE BOTTOM BLOCK: Supporting text & secondary detail line in lower safe zone */}
                   <div
-                    className="absolute z-20 flex flex-col pointer-events-none bottom-12 sm:bottom-14 inset-x-0"
+                    className={`absolute z-20 flex flex-col pointer-events-none bottom-12 sm:bottom-14 inset-x-0 transition-all duration-500 ease-out ${
+                      isActive ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2 pointer-events-none'
+                    }`}
                     style={{
                       paddingLeft: 'clamp(20px, 6vw, 32px)',
                       paddingRight: 'clamp(20px, 6vw, 32px)'
                     }}
                   >
                     <div className="space-y-1.5 pointer-events-none max-w-[88vw]">
-                      {/* Layer 3: Supporting Copy (appears 3rd, exits 2nd) */}
+                      {/* Layer 3: Supporting Copy */}
                       <div
-                        style={{
-                          opacity: ch3Sequence.supporting.opacity
-                        }}
-                        className="transition-opacity duration-300 ease-out"
+                        className={`transition-all duration-500 ease-out ${
+                          isActive ? 'opacity-100 translate-y-0 delay-250' : 'opacity-0 translate-y-2'
+                        }`}
                       >
                         <p
                           style={{ fontSize: 'clamp(13px, 3.8vw, 15px)', lineHeight: 1.5 }}
-                          className="text-[#F5EFEB]/90 font-light whitespace-pre-line drop-shadow-[0_1px_3px_rgba(0,0,0,0.5)]"
+                          className="text-[#F5EFEB]/90 font-light whitespace-pre-line drop-shadow-[0_1px_4px_rgba(0,0,0,0.7)]"
                         >
                           {ch.mobileSupportingText || ch.supportingText}
                         </p>
                       </div>
 
-                      {/* Layer 4: Secondary Detail Line (appears last, exits 1st) */}
+                      {/* Layer 4: Secondary Detail Line */}
                       <div
-                        style={{
-                          opacity: ch3Sequence.secondary.opacity
-                        }}
-                        className="transition-opacity duration-300 ease-out"
+                        className={`transition-all duration-500 ease-out ${
+                          isActive ? 'opacity-100 translate-y-0 delay-350' : 'opacity-0 translate-y-2'
+                        }`}
                       >
-                        <div className="text-[9.5px] uppercase tracking-[0.22em] font-semibold text-[#E8D3BA]/90 pt-0.5 drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)]">
+                        <div className="text-[9.5px] uppercase tracking-[0.22em] font-semibold text-[#E8D3BA]/90 pt-0.5 drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)]">
                           {ch.detailLine}
                         </div>
                       </div>
@@ -841,60 +770,55 @@ export default function ScrollStory() {
             return (
               <div
                 key={ch.id}
-                className={`absolute z-20 flex flex-col pointer-events-none ${getDesktopPlacementClasses(
+                className={`absolute z-20 flex flex-col pointer-events-none transition-all duration-500 ease-out ${getDesktopPlacementClasses(
                   ch.desktopPosition,
                   true
-                )}`}
+                )} ${isActive ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-3 pointer-events-none'}`}
                 style={{
                   paddingLeft: 'clamp(24px, 4vw, 48px)'
                 }}
               >
                 <div className="space-y-3 pointer-events-none max-w-[420px]">
-                  {/* Layer 1: Eyebrow (appears 1st, exits last) */}
+                  {/* Layer 1: Eyebrow */}
                   <div
-                    style={{
-                      opacity: ch3Sequence.eyebrow.opacity
-                    }}
-                    className="transition-opacity duration-300 ease-out"
+                    className={`transition-all duration-500 ease-out ${
+                      isActive ? 'opacity-100 translate-y-0 delay-75' : 'opacity-0 translate-y-2'
+                    }`}
                   >
-                    <span className="text-[11px] font-bold uppercase tracking-[0.28em] text-[#E8D3BA] drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)]">
+                    <span className="text-[11px] font-bold uppercase tracking-[0.28em] text-[#E8D3BA] drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)]">
                       {ch.eyebrow}
                     </span>
                   </div>
 
-                  {/* Layer 2: Main Heading (appears 2nd with 12px upward movement, exits 2nd) */}
+                  {/* Layer 2: Main Heading */}
                   <div
-                    style={{
-                      opacity: ch3Sequence.heading.opacity,
-                      transform: `translateY(${ch3Sequence.heading.translateY}px)`
-                    }}
-                    className="transition-transform duration-300 ease-out"
+                    className={`transition-all duration-500 ease-out ${
+                      isActive ? 'opacity-100 translate-y-0 delay-150' : 'opacity-0 translate-y-3'
+                    }`}
                   >
-                    <h2 className="font-editorial font-bold text-[#FFFDF9] tracking-tight leading-[1.04] text-4xl lg:text-5xl drop-shadow-[0_2px_8px_rgba(0,0,0,0.6)]">
+                    <h2 className="font-editorial font-bold text-[#FFFDF9] tracking-tight leading-[1.04] text-4xl lg:text-5xl drop-shadow-[0_2px_12px_rgba(0,0,0,0.85)] drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)]">
                       {ch.heading}
                     </h2>
                   </div>
 
-                  {/* Layer 3: Supporting Copy (appears 3rd, exits 2nd) */}
+                  {/* Layer 3: Supporting Copy */}
                   <div
-                    style={{
-                      opacity: ch3Sequence.supporting.opacity
-                    }}
-                    className="transition-opacity duration-300 ease-out pt-1"
+                    className={`transition-all duration-500 ease-out pt-1 ${
+                      isActive ? 'opacity-100 translate-y-0 delay-250' : 'opacity-0 translate-y-2'
+                    }`}
                   >
-                    <p className="text-sm lg:text-base text-[#F5EFEB]/90 leading-relaxed font-light whitespace-pre-line drop-shadow-[0_1px_3px_rgba(0,0,0,0.5)]">
+                    <p className="text-sm lg:text-base text-[#F5EFEB]/90 leading-relaxed font-light whitespace-pre-line drop-shadow-[0_1px_4px_rgba(0,0,0,0.7)]">
                       {ch.supportingText}
                     </p>
                   </div>
 
-                  {/* Layer 4: Secondary Detail Line (appears last, exits 1st) */}
+                  {/* Layer 4: Secondary Detail Line */}
                   <div
-                    style={{
-                      opacity: ch3Sequence.secondary.opacity
-                    }}
-                    className="transition-opacity duration-300 ease-out"
+                    className={`transition-all duration-500 ease-out ${
+                      isActive ? 'opacity-100 translate-y-0 delay-350' : 'opacity-0 translate-y-2'
+                    }`}
                   >
-                    <div className="text-xs uppercase tracking-[0.24em] font-semibold text-[#E8D3BA]/90 pt-1 drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)]">
+                    <div className="text-xs uppercase tracking-[0.24em] font-semibold text-[#E8D3BA]/90 pt-1 drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)]">
                       {ch.detailLine}
                     </div>
                   </div>
@@ -904,22 +828,21 @@ export default function ScrollStory() {
           }
 
           // Chapters 01, 02, 04, 05: Editorial Typography sitting directly in photographic light-shaping shadow
-          // ZERO cards, ZERO borders, ZERO glassmorphic boxes
-          const { opacity, translateY, isVisible } = getChapterTransform(ch, currentP);
-          if (!isVisible) return null;
-
           const isCh5 = ch.id === 5;
 
           return (
             <div
               key={ch.id}
-              className={`absolute z-20 flex flex-col pointer-events-none transition-transform duration-300 ease-out ${isMobileState
-                ? getMobilePlacementClasses(ch.mobilePosition, isCh5)
-                : getDesktopPlacementClasses(ch.desktopPosition, false, isCh5)
-                }`}
+              className={`absolute z-20 flex flex-col transition-all duration-500 ease-out ${
+                isMobileState
+                  ? getMobilePlacementClasses(ch.mobilePosition, isCh5)
+                  : getDesktopPlacementClasses(ch.desktopPosition, false, isCh5)
+              } ${
+                isActive
+                  ? 'opacity-100 translate-y-0 pointer-events-auto'
+                  : 'opacity-0 translate-y-3 pointer-events-none'
+              }`}
               style={{
-                opacity,
-                transform: `translateY(${translateY}px)`,
                 paddingLeft: isMobileState ? 'clamp(20px, 6vw, 32px)' : 'clamp(24px, 4vw, 48px)',
                 paddingRight: isMobileState ? 'clamp(20px, 6vw, 32px)' : 'clamp(24px, 4vw, 48px)'
               }}
@@ -965,15 +888,12 @@ export default function ScrollStory() {
                   </div>
                 )}
 
-                {/* Final Hero Call-to-Action (Smooth bidirectional fade on Chapter 5 with generous spacing) */}
+                {/* Final Hero Call-to-Action (Chapter 5) */}
                 {isCh5 && (
                   <div
-                    className="pt-7 sm:pt-9 pointer-events-auto transition-all duration-500 ease-out"
-                    style={{
-                      opacity: Math.max(0, Math.min(1, (currentP - 0.86) / 0.05)),
-                      transform: `translateY(${Math.max(0, (1 - Math.max(0, Math.min(1, (currentP - 0.86) / 0.05))) * 12)}px)`,
-                      pointerEvents: currentP >= 0.88 ? 'auto' : 'none'
-                    }}
+                    className={`pt-7 sm:pt-9 transition-all duration-500 ease-out ${
+                      isActive ? 'opacity-100 translate-y-0 pointer-events-auto delay-150' : 'opacity-0 translate-y-2 pointer-events-none'
+                    }`}
                   >
                     <Link
                       href="/shop?category=kurtis"
