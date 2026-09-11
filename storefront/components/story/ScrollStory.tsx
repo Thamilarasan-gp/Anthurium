@@ -33,8 +33,8 @@ const STORY_CHAPTERS: StoryChapter[] = [
     detailLine: 'Selected with intention.',
     startProgress: 0.0,
     peakStart: 0.0,
-    peakEnd: 0.12,
-    endProgress: 0.17,
+    peakEnd: 0.09,
+    endProgress: 0.13,
     desktopPosition: 'top-left',
     mobilePosition: 'top'
   },
@@ -47,10 +47,10 @@ const STORY_CHAPTERS: StoryChapter[] = [
     supportingText: 'Measured, shaped and carefully prepared for the silhouette it will become.',
     mobileSupportingText: 'Measured. Shaped. Prepared.',
     detailLine: 'EVERY LINE HAS A PURPOSE.',
-    startProgress: 0.15,
-    peakStart: 0.19,
-    peakEnd: 0.29,
-    endProgress: 0.35,
+    startProgress: 0.17,
+    peakStart: 0.20,
+    peakEnd: 0.27,
+    endProgress: 0.31,
     desktopPosition: 'top-right',
     mobilePosition: 'bottom'
   },
@@ -63,10 +63,10 @@ const STORY_CHAPTERS: StoryChapter[] = [
     supportingText: 'Stitched slowly.\nFinished with intention.',
     mobileSupportingText: 'Stitched slowly.\nFinished with intention.',
     detailLine: 'MADE TO BE FELT.',
-    startProgress: 0.34,
+    startProgress: 0.35,
     peakStart: 0.44,
-    peakEnd: 0.54,
-    endProgress: 0.66,
+    peakEnd: 0.56,
+    endProgress: 0.65,
     desktopPosition: 'bottom-left',
     mobilePosition: 'bottom'
   },
@@ -79,10 +79,10 @@ const STORY_CHAPTERS: StoryChapter[] = [
     supportingText: 'From the smallest stitch to the final finishing touch.',
     mobileSupportingText: 'From the smallest stitch to the final touch.',
     detailLine: 'CRAFTED FOR HER.',
-    startProgress: 0.64,
-    peakStart: 0.69,
+    startProgress: 0.68,
+    peakStart: 0.71,
     peakEnd: 0.78,
-    endProgress: 0.83,
+    endProgress: 0.82,
     desktopPosition: 'top-left',
     mobilePosition: 'bottom'
   },
@@ -95,8 +95,8 @@ const STORY_CHAPTERS: StoryChapter[] = [
     supportingText: 'A piece of craftsmanship, made to become part of her story.',
     mobileSupportingText: 'Wear your story.',
     detailLine: 'WEAR YOUR STORY.',
-    startProgress: 0.81,
-    peakStart: 0.86,
+    startProgress: 0.85,
+    peakStart: 0.88,
     peakEnd: 1.0,
     endProgress: 1.0,
     desktopPosition: 'center-left',
@@ -450,11 +450,11 @@ export default function ScrollStory() {
         drawFrameToCanvas(roundedFrame, currentProgressRef.current);
       }
 
-      // Track active chapter for counter badge
+      // Track active chapter for counter badge (graceful tracking through buffer gaps)
       const activeP = currentProgressRef.current;
       let curIdx = 0;
-      for (let i = 0; i < STORY_CHAPTERS.length; i++) {
-        if (activeP >= STORY_CHAPTERS[i].startProgress && activeP <= STORY_CHAPTERS[i].endProgress) {
+      for (let i = STORY_CHAPTERS.length - 1; i >= 0; i--) {
+        if (activeP >= STORY_CHAPTERS[i].startProgress) {
           curIdx = i;
           break;
         }
@@ -584,10 +584,10 @@ export default function ScrollStory() {
       return { opacity: 1, translateY: 0 };
     };
 
-    const eyebrow = calcLayer(0.340, 0.380, 0.620, 0.660, 0);
-    const heading = calcLayer(0.385, 0.425, 0.580, 0.620, 12);
-    const supporting = calcLayer(0.430, 0.470, 0.540, 0.580, 0);
-    const secondary = calcLayer(0.475, 0.510, 0.510, 0.540, 0);
+    const eyebrow = calcLayer(0.350, 0.385, 0.615, 0.650, 0);
+    const heading = calcLayer(0.385, 0.425, 0.580, 0.615, 12);
+    const supporting = calcLayer(0.425, 0.465, 0.540, 0.580, 0);
+    const secondary = calcLayer(0.465, 0.500, 0.505, 0.540, 0);
 
     const isVisible =
       eyebrow.opacity > 0.01 ||
@@ -600,30 +600,30 @@ export default function ScrollStory() {
 
   // Helper to generate dynamic, subtle directional black gradient overlay (.story-overlay)
   // Functions as cinematic light shaping behind the active typography safe zone
+  // Tuned with deeper black contrast where text sits, leaving craftsmanship vibrant
   const getActiveOverlayGradient = (chIdx: number, isMobile: boolean): string => {
     if (isMobile) {
       if (chIdx === 0) {
-        // Chapter 01: Top-positioned text -> Soft top-down gradient
-        return 'linear-gradient(180deg, rgba(0,0,0,0.52) 0%, rgba(0,0,0,0.32) 18%, rgba(0,0,0,0.12) 34%, rgba(0,0,0,0.02) 46%, transparent 58%)';
+        // Chapter 01: Top-positioned text -> Deep top-down black shadow
+        return 'linear-gradient(180deg, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.70) 18%, rgba(0,0,0,0.40) 32%, rgba(0,0,0,0.12) 46%, rgba(0,0,0,0.02) 56%, transparent 66%)';
       } else if (chIdx === 2) {
         // Chapter 03: Dual delicate safe zones (Top for heading, Bottom for craft text)
-        // Center 40%..60% remains 100% natural, bright & vivid for needle & floral embroidery
-        return 'linear-gradient(180deg, rgba(0,0,0,0.48) 0%, rgba(0,0,0,0.26) 16%, rgba(0,0,0,0.08) 28%, transparent 40%), linear-gradient(0deg, rgba(0,0,0,0.54) 0%, rgba(0,0,0,0.30) 18%, rgba(0,0,0,0.08) 28%, transparent 42%)';
+        // Center remains 100% natural, bright & vivid for needle & floral embroidery
+        return 'linear-gradient(180deg, rgba(0,0,0,0.82) 0%, rgba(0,0,0,0.64) 18%, rgba(0,0,0,0.28) 30%, rgba(0,0,0,0.05) 40%, transparent 48%), linear-gradient(0deg, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.68) 18%, rgba(0,0,0,0.32) 30%, rgba(0,0,0,0.06) 40%, transparent 48%)';
       } else {
-        // Chapters 02, 04, 05: Bottom-positioned text -> Soft bottom-up gradient
-        return 'linear-gradient(0deg, rgba(0,0,0,0.56) 0%, rgba(0,0,0,0.34) 22%, rgba(0,0,0,0.14) 38%, rgba(0,0,0,0.03) 50%, transparent 62%)';
+        // Chapters 02, 04, 05: Bottom-positioned text -> Deep bottom-up black shadow
+        return 'linear-gradient(0deg, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.72) 22%, rgba(0,0,0,0.42) 38%, rgba(0,0,0,0.16) 50%, rgba(0,0,0,0.03) 60%, transparent 70%)';
       }
     } else {
       if (chIdx === 1) {
-        // Chapter 02: Right-positioned text -> Soft right-to-left gradient
-        return 'linear-gradient(270deg, rgba(0,0,0,0.62) 0%, rgba(0,0,0,0.40) 18%, rgba(0,0,0,0.16) 32%, rgba(0,0,0,0.03) 44%, transparent 56%)';
+        // Chapter 02: Right-positioned text -> Deep right-to-left black shadow
+        return 'linear-gradient(270deg, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.75) 18%, rgba(0,0,0,0.52) 32%, rgba(0,0,0,0.24) 46%, rgba(0,0,0,0.05) 58%, transparent 70%)';
       } else if (chIdx === 4) {
-        // Chapter 05: Soft left-side gradient leaving the centered kurthi brightly lit
-        return 'linear-gradient(90deg, rgba(0,0,0,0.60) 0%, rgba(0,0,0,0.38) 18%, rgba(0,0,0,0.14) 32%, rgba(0,0,0,0.02) 44%, transparent 55%)';
+        // Chapter 05: Rich left-side gradient leaving the centered kurthi brightly lit
+        return 'linear-gradient(90deg, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.72) 20%, rgba(0,0,0,0.48) 35%, rgba(0,0,0,0.20) 48%, rgba(0,0,0,0.03) 60%, transparent 70%)';
       } else {
-        // Chapters 01, 03, 04: Left-positioned text -> Multi-stop luxury editorial shadow
-        // rgba(0,0,0,0.62) -> rgba(0,0,0,0.40) -> rgba(0,0,0,0.16) -> rgba(0,0,0,0.03) -> transparent
-        return 'linear-gradient(90deg, rgba(0,0,0,0.62) 0%, rgba(0,0,0,0.40) 18%, rgba(0,0,0,0.16) 32%, rgba(0,0,0,0.03) 44%, transparent 56%)';
+        // Chapters 01, 03, 04: Left-positioned text -> Deep multi-stop luxury editorial shadow
+        return 'linear-gradient(90deg, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.75) 18%, rgba(0,0,0,0.52) 32%, rgba(0,0,0,0.24) 46%, rgba(0,0,0,0.05) 58%, transparent 70%)';
       }
     }
   };
@@ -900,8 +900,8 @@ export default function ScrollStory() {
             <div
               key={ch.id}
               className={`absolute z-20 flex flex-col pointer-events-none transition-transform duration-300 ease-out ${isMobileState
-                  ? getMobilePlacementClasses(ch.mobilePosition)
-                  : getDesktopPlacementClasses(ch.desktopPosition)
+                ? getMobilePlacementClasses(ch.mobilePosition)
+                : getDesktopPlacementClasses(ch.desktopPosition)
                 }`}
               style={{
                 opacity,
