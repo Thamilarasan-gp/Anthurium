@@ -1,0 +1,19 @@
+{
+  "name": "anthurium-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev:backend": "npm run dev --prefix backend",
+    "dev:storefront": "npm run dev --prefix storefront",
+    "dev:admin": "npm run dev --prefix admin",
+    "dev": "concurrently --kill-others -n \"BACKEND,STORE,ADMIN\" -c \"blue,green,magenta\" \"npm run dev:backend\" \"npm run dev:storefront\" \"npm run dev:admin\"",
+    "seed": "npm run seed --prefix backend",
+    "build:backend": "npm run build --prefix backend",
+    "build:storefront": "npm run build --prefix storefront",
+    "build:admin": "npm run build --prefix admin",
+    "build": "npm run build:backend && npm run build:storefront && npm run build:admin"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
