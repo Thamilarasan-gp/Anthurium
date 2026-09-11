@@ -9,10 +9,16 @@ interface StoryChapter {
   chapterNumber: string;
   eyebrow: string;
   heading: string;
+  mobileHeading?: string;
   supportingText: string;
-  detailLine: string;
-  progressRange: [number, number]; // [start, end] in 0.0 - 1.0
-  position: 'top-left' | 'top-right' | 'bottom-left' | 'center-left';
+  mobileSupportingText?: string;
+  detailLine?: string;
+  startProgress: number;
+  peakStart: number;
+  peakEnd: number;
+  endProgress: number;
+  desktopPosition: 'top-left' | 'top-right' | 'bottom-left' | 'center-left';
+  mobilePosition: 'top' | 'bottom';
 }
 
 const STORY_CHAPTERS: StoryChapter[] = [
@@ -21,52 +27,124 @@ const STORY_CHAPTERS: StoryChapter[] = [
     chapterNumber: '01',
     eyebrow: '01 / THE BEGINNING',
     heading: 'FROM THE FABRIC',
+    mobileHeading: 'FROM THE FABRIC',
     supportingText: 'Every story begins with the touch, texture and character of the cloth.',
+    mobileSupportingText: 'Every story begins with the character of the cloth.',
     detailLine: 'Selected with intention.',
-    progressRange: [0.0, 0.20],
-    position: 'top-left'
+    startProgress: 0.0,
+    peakStart: 0.0,
+    peakEnd: 0.12,
+    endProgress: 0.17,
+    desktopPosition: 'top-left',
+    mobilePosition: 'top'
   },
   {
     id: 2,
     chapterNumber: '02',
     eyebrow: '02 / SHAPING THE STORY',
     heading: 'CUT WITH PURPOSE.',
+    mobileHeading: 'CUT WITH PURPOSE.',
     supportingText: 'Measured, shaped and carefully prepared for the silhouette it will become.',
+    mobileSupportingText: 'Measured. Shaped. Prepared.',
     detailLine: 'EVERY LINE HAS A PURPOSE.',
-    progressRange: [0.20, 0.40],
-    position: 'top-right'
+    startProgress: 0.15,
+    peakStart: 0.19,
+    peakEnd: 0.29,
+    endProgress: 0.35,
+    desktopPosition: 'top-right',
+    mobilePosition: 'bottom'
   },
   {
     id: 3,
     chapterNumber: '03',
     eyebrow: '03 / THE CRAFT',
     heading: 'SHAPED BY HAND.',
-    supportingText: 'Stitched with patience. Finished with care.',
+    mobileHeading: 'SHAPED BY HAND.',
+    supportingText: 'Stitched slowly.\nFinished with intention.',
+    mobileSupportingText: 'Stitched slowly.\nFinished with intention.',
     detailLine: 'MADE TO BE FELT.',
-    progressRange: [0.40, 0.60],
-    position: 'bottom-left'
+    startProgress: 0.34,
+    peakStart: 0.44,
+    peakEnd: 0.54,
+    endProgress: 0.66,
+    desktopPosition: 'bottom-left',
+    mobilePosition: 'bottom'
   },
   {
     id: 4,
     chapterNumber: '04',
     eyebrow: '04 / DETAILS MATTER',
-    heading: 'EVERY THREAD TELLS A STORY.',
+    heading: 'EVERY THREAD\nTELLS A STORY.',
+    mobileHeading: 'EVERY THREAD TELLS A STORY.',
     supportingText: 'From the smallest stitch to the final finishing touch.',
+    mobileSupportingText: 'From the smallest stitch to the final touch.',
     detailLine: 'CRAFTED FOR HER.',
-    progressRange: [0.60, 0.82],
-    position: 'top-left'
+    startProgress: 0.64,
+    peakStart: 0.69,
+    peakEnd: 0.78,
+    endProgress: 0.83,
+    desktopPosition: 'top-left',
+    mobilePosition: 'bottom'
   },
   {
     id: 5,
     chapterNumber: '05',
     eyebrow: '05 / THE FINAL PIECE',
     heading: 'FROM OUR HANDS,\nTO HERS.',
+    mobileHeading: 'FROM OUR HANDS, TO HERS.',
     supportingText: 'A piece of craftsmanship, made to become part of her story.',
+    mobileSupportingText: 'Wear your story.',
     detailLine: 'WEAR YOUR STORY.',
-    progressRange: [0.82, 1.0],
-    position: 'center-left'
+    startProgress: 0.81,
+    peakStart: 0.86,
+    peakEnd: 1.0,
+    endProgress: 1.0,
+    desktopPosition: 'center-left',
+    mobilePosition: 'bottom'
   }
 ];
+
+// Non-linear cinematic pacing function:
+// Chapter 03 ("THE CRAFT" - sewing needle & stitchwork) receives 32% of total vertical scroll distance,
+// making its visual frame progression 2.5x–3x slower perceptually for a meditative artisan experience.
+function progressToCinematicFrame(p: number, totalFrames: number): number {
+  const maxF = totalFrames - 1;
+  if (p <= 0) return 0;
+  if (p >= 1) return maxF;
+
+  // 0.00 -> 0.16: Chapter 1 - Fabric opening (frames 0 to ~36)
+  if (p < 0.16) {
+    const t = p / 0.16;
+    return (t * 0.15) * maxF;
+  }
+  // 0.16 -> 0.34: Chapter 2 - Cutting with purpose (frames ~36 to ~82)
+  else if (p < 0.34) {
+    const t = (p - 0.16) / 0.18;
+    return (0.15 + t * 0.19) * maxF;
+  }
+  // 0.34 -> 0.66: Chapter 3 - THE CRAFT (Sewing needle, stitch, thread) - 32% OF SCROLL!
+  // Covers frames ~82 to ~136 (only ~54 frames across 32% of scroll distance = ~2.7x slower per pixel)
+  else if (p < 0.66) {
+    const t = (p - 0.34) / 0.32;
+    return (0.34 + t * 0.22) * maxF;
+  }
+  // 0.66 -> 0.83: Chapter 4 - Details matter & embroidery (frames ~136 to ~186)
+  else if (p < 0.83) {
+    const t = (p - 0.66) / 0.17;
+    return (0.56 + t * 0.21) * maxF;
+  }
+  // 0.83 -> 0.91: Chapter 5 - Kurthi reveal
+  else if (p < 0.91) {
+    const t = (p - 0.83) / 0.08;
+    return (0.77 + t * 0.14) * maxF;
+  }
+  // 0.91 -> 1.00: Final hero ease-out pause
+  else {
+    const t = (p - 0.91) / 0.09;
+    const easeT = 1 - Math.pow(1 - t, 2.2);
+    return (0.91 + easeT * 0.09) * maxF;
+  }
+}
 
 export default function ScrollStory() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -91,13 +169,14 @@ export default function ScrollStory() {
   const activeLoadsRef = useRef<Set<number>>(new Set());
   const maxCacheSizeRef = useRef<number>(85);
 
-  // React states (only updated on chapter transitions or UI flags)
-  const [activeChapterId, setActiveChapterId] = useState<number>(1);
-  const lastReportedChapterRef = useRef<number>(1);
+  // React states
+  const [activeChapterIndex, setActiveChapterIndex] = useState<number>(0);
+  const lastReportedChapterRef = useRef<number>(0);
   const [isFirstFrameLoaded, setIsFirstFrameLoaded] = useState<boolean>(false);
   const [isReducedMotion, setIsReducedMotion] = useState<boolean>(false);
   const [scrollHintVisible, setScrollHintVisible] = useState<boolean>(true);
   const [isCtaVisible, setIsCtaVisible] = useState<boolean>(false);
+  const [isMobileState, setIsMobileState] = useState<boolean>(false);
 
   // Helper to format frame filename
   const getFrameUrl = useCallback((index: number, isMobile: boolean) => {
@@ -128,7 +207,7 @@ export default function ScrollStory() {
       activeLoadsRef.current.delete(clampedIndex);
       imageCacheRef.current.set(clampedIndex, img);
 
-      // Bounded eviction: if cache exceeds limit, evict furthest from current position
+      // Bounded eviction: evict furthest from current position if cache exceeds limit
       if (imageCacheRef.current.size > maxCacheSizeRef.current) {
         let furthestKey = -1;
         let maxDistance = -1;
@@ -155,16 +234,14 @@ export default function ScrollStory() {
     };
   }, [getFrameUrl]);
 
-  // Priority-based preloading based on current frame and scroll direction
+  // Direction-aware preloader prioritizing frames ahead in travel direction
   const updatePreloadQueue = useCallback((centerFrame: number, direction: 'down' | 'up', isMobile: boolean) => {
     const total = isMobile ? 120 : 240;
-    const forwardLookahead = direction === 'down' ? (isMobile ? 16 : 26) : (isMobile ? 8 : 12);
-    const backwardLookahead = direction === 'up' ? (isMobile ? 16 : 26) : (isMobile ? 8 : 12);
+    const forwardLookahead = direction === 'down' ? (isMobile ? 18 : 28) : (isMobile ? 8 : 12);
+    const backwardLookahead = direction === 'up' ? (isMobile ? 18 : 28) : (isMobile ? 8 : 12);
 
-    // 1. Current frame
     preloadFrame(centerFrame, isMobile);
 
-    // 2. Lookahead frames in direction of travel
     if (direction === 'down') {
       for (let i = 1; i <= forwardLookahead; i++) {
         if (centerFrame + i < total) preloadFrame(centerFrame + i, isMobile);
@@ -182,14 +259,14 @@ export default function ScrollStory() {
     }
   }, [preloadFrame]);
 
-  // Full-Screen Edge-to-Edge Canvas Drawing
-  const drawFrameToCanvas = useCallback((frameIndex: number) => {
+  // Clean, Natural Canvas Drawing with subtle physical camera breathing (zero dark overlay)
+  const drawFrameToCanvas = useCallback((frameIndex: number, progressRatio: number) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d', { alpha: false });
     if (!ctx) return;
 
-    // Check if requested image is loaded; fallback to nearest available frame in cache
+    // Nearest-neighbor fallback if requested frame is still decoding
     let img = imageCacheRef.current.get(frameIndex);
     if (!img) {
       let minDiff = Infinity;
@@ -216,67 +293,54 @@ export default function ScrollStory() {
     const videoAspect = 1150 / 636;
     const canvasAspect = canvasW / canvasH;
 
+    // Subtle microscopic cinematic zoom (1.0 -> 1.035) to feel like a slow physical camera push
+    const cameraZoom = 1.0 + progressRatio * 0.035;
+
     let drawW: number;
     let drawH: number;
     let offsetX: number;
     let offsetY: number;
 
-    if (!isMobile) {
-      // Desktop: Edge-to-edge full-bleed cinematic composition (cover scaling)
-      if (canvasAspect > videoAspect) {
-        drawW = canvasW;
-        drawH = canvasW / videoAspect;
-        offsetX = 0;
-        offsetY = (canvasH - drawH) / 2;
-      } else {
-        drawH = canvasH;
-        drawW = canvasH * videoAspect;
-        offsetX = (canvasW - drawW) / 2;
-        offsetY = 0;
-      }
-    } else {
-      // Mobile portrait: Prioritize garment and craftsmanship visibility without aggressive crop
-      // Fits width edge-to-edge and vertically positions it gracefully
-      drawW = canvasW;
-      drawH = canvasW / videoAspect;
-      offsetX = 0;
-      // Position slightly above true center (0.40) so mobile top/bottom text breathe naturally
-      offsetY = (canvasH - drawH) * 0.40;
-    }
-
-    // Fill background with warm deep tone matching the video atelier / studio environment
-    ctx.fillStyle = '#121110';
+    // Background: Pure warm ivory (#FAF7F2) matching Anthurium's signature palette
+    ctx.fillStyle = '#FAF7F2';
     ctx.fillRect(0, 0, canvasW, canvasH);
 
-    // Draw the active video frame
-    ctx.drawImage(img, offsetX, offsetY, drawW, drawH);
-
-    // Subtle edge blending vignette on mobile to seamlessly merge vertical gutters
-    if (isMobile && offsetY > 0) {
-      const topGrad = ctx.createLinearGradient(0, offsetY, 0, offsetY + 60);
-      topGrad.addColorStop(0, 'rgba(18, 17, 16, 1)');
-      topGrad.addColorStop(1, 'rgba(18, 17, 16, 0)');
-      ctx.fillStyle = topGrad;
-      ctx.fillRect(0, offsetY, canvasW, 60);
-
-      const bottomY = offsetY + drawH;
-      const botGrad = ctx.createLinearGradient(0, bottomY - 60, 0, bottomY);
-      botGrad.addColorStop(0, 'rgba(18, 17, 16, 0)');
-      botGrad.addColorStop(1, 'rgba(18, 17, 16, 1)');
-      ctx.fillStyle = botGrad;
-      ctx.fillRect(0, bottomY - 60, canvasW, 60);
+    if (!isMobile) {
+      // Desktop: Full-bleed cinematic composition
+      if (canvasAspect > videoAspect) {
+        drawW = canvasW * cameraZoom;
+        drawH = (canvasW / videoAspect) * cameraZoom;
+        offsetX = (canvasW - drawW) / 2;
+        offsetY = (canvasH - drawH) / 2;
+      } else {
+        drawH = canvasH * cameraZoom;
+        drawW = (canvasH * videoAspect) * cameraZoom;
+        offsetX = (canvasW - drawW) / 2;
+        offsetY = (canvasH - drawH) / 2;
+      }
+    } else {
+      // Mobile portrait: Full-bleed cinematic framing without letterboxing (100vw x 100svh)
+      // Fills viewport height while keeping the artisan subject (needle, embroidery, kurthi) centered and tactile
+      drawH = canvasH * cameraZoom;
+      drawW = drawH * videoAspect;
+      offsetX = (canvasW - drawW) / 2;
+      offsetY = (canvasH - drawH) / 2;
     }
+
+    // Draw the active video frame with pure, natural colors (Zero artificial color alteration)
+    ctx.drawImage(img, offsetX, offsetY, drawW, drawH);
 
     lastDrawnFrameRef.current = frameIndex;
   }, []);
 
-  // Resize handler for true full-bleed viewport
+  // Resize handler for modern viewport units (100svh aware)
   const handleResize = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
     const isMobile = window.innerWidth < 768;
     isMobileRef.current = isMobile;
+    setIsMobileState(isMobile);
     maxFramesRef.current = isMobile ? 120 : 240;
     maxCacheSizeRef.current = isMobile ? 50 : 90;
 
@@ -288,11 +352,11 @@ export default function ScrollStory() {
     canvas.height = Math.round(height * dpr);
 
     if (lastDrawnFrameRef.current >= 0) {
-      drawFrameToCanvas(lastDrawnFrameRef.current);
+      drawFrameToCanvas(lastDrawnFrameRef.current, currentProgressRef.current);
     }
   }, [drawFrameToCanvas]);
 
-  // Main Scroll & RAF Animation Loop
+  // Main Scroll & RAF Animation Loop (EXTRA SLOW, HYPNOTIC CINEMATIC DAMPING IN CHAPTER 03)
   useEffect(() => {
     // Detect reduced motion preference
     const motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -304,13 +368,13 @@ export default function ScrollStory() {
     handleResize();
     window.addEventListener('resize', handleResize, { passive: true });
 
-    // Initial preload: frame 0 and first 12 frames
+    // Initial preload: frame 0 and first 16 frames
     const isMobile = window.innerWidth < 768;
     preloadFrame(0, isMobile, () => {
       setIsFirstFrameLoaded(true);
-      drawFrameToCanvas(0);
+      drawFrameToCanvas(0, 0);
     });
-    for (let i = 1; i <= 14; i++) {
+    for (let i = 1; i <= 16; i++) {
       preloadFrame(i, isMobile);
     }
 
@@ -327,29 +391,18 @@ export default function ScrollStory() {
       scrollDirectionRef.current = direction;
       lastScrollYRef.current = scrollY;
 
-      // Scrollable distance = container height - window height
+      // Total scrollable distance
       const totalScrollDistance = rect.height - window.innerHeight;
       if (totalScrollDistance <= 0) return;
 
       const progress = Math.max(0, Math.min(1, -rect.top / totalScrollDistance));
       targetProgressRef.current = progress;
 
-      // Map progress to target frame:
-      // Chapter 1-4 (0.0 to 0.82): smoothly traverses from fabric -> cut -> craft -> stitch (0 to 78% of frames)
-      // Chapter 5 (0.82 to 1.0): perceptually slows down across last 22% of frames to dwell on the finished kurthi hero
-      const maxF = maxFramesRef.current - 1;
-      let calculatedFrame: number;
+      // Map progress to target frame using non-linear cinematic pacing
+      const maxF = maxFramesRef.current;
+      targetFrameRef.current = progressToCinematicFrame(progress, maxF);
 
-      if (progress < 0.82) {
-        calculatedFrame = (progress / 0.82) * (maxF * 0.78);
-      } else {
-        const lateProgress = (progress - 0.82) / 0.18;
-        calculatedFrame = (maxF * 0.78) + lateProgress * (maxF * 0.22);
-      }
-
-      targetFrameRef.current = Math.min(maxF, Math.max(0, calculatedFrame));
-
-      // Trigger direction-aware preload
+      // Preload frames ahead in scroll direction
       updatePreloadQueue(Math.round(targetFrameRef.current), direction, isMobileRef.current);
 
       // Dismiss scroll hint once scrolling commences
@@ -360,47 +413,60 @@ export default function ScrollStory() {
 
     window.addEventListener('scroll', onScroll, { passive: true });
 
-    // requestAnimationFrame loop with physics damping (lerp)
+    // requestAnimationFrame loop:
+    // Chapter 03 ("THE CRAFT") activates stronger cinematic damping (0.030) and tighter speed ceiling (0.45 frames/tick)
+    // so the sewing needle movement feels hypnotic, meditative, and authentic
     let isRunning = true;
     const renderLoop = () => {
       if (!isRunning) return;
 
-      // Damping = 0.13 for refined cinematic inertia
-      const damping = 0.13;
       const targetF = targetFrameRef.current;
       const currentF = currentFrameRef.current;
       const diff = targetF - currentF;
+      const p = currentProgressRef.current;
 
-      if (Math.abs(diff) > 0.01) {
-        currentFrameRef.current += diff * damping;
+      // Detect if currently in Chapter 03 craftsman zone (0.34 to 0.66)
+      const isChapter3 = p >= 0.34 && p <= 0.66;
+
+      // Silky damping: 0.030 for Chapter 3 (2.5x slower), 0.055 for other chapters
+      const damping = isChapter3 ? 0.030 : 0.055;
+
+      // Velocity ceiling: 0.45 frames/tick for Chapter 3 to prevent fast scrubbing; 1.25 for other chapters
+      const maxStep = isChapter3 ? 0.45 : 1.25;
+      const step = Math.sign(diff) * Math.min(Math.abs(diff) * damping, maxStep);
+
+      if (Math.abs(diff) > 0.02) {
+        currentFrameRef.current += step;
       } else {
         currentFrameRef.current = targetF;
       }
 
-      currentProgressRef.current += (targetProgressRef.current - currentProgressRef.current) * damping;
+      // Smooth progress interpolation
+      const progressDamping = isChapter3 ? 0.035 : 0.06;
+      currentProgressRef.current += (targetProgressRef.current - currentProgressRef.current) * progressDamping;
 
       const roundedFrame = Math.round(currentFrameRef.current);
       if (roundedFrame !== lastDrawnFrameRef.current) {
-        drawFrameToCanvas(roundedFrame);
+        drawFrameToCanvas(roundedFrame, currentProgressRef.current);
       }
 
-      // Check chapter transition (only re-render React state when chapter id changes)
-      const p = targetProgressRef.current;
-      let newChapter = 1;
-      for (const ch of STORY_CHAPTERS) {
-        if (p >= ch.progressRange[0] && p <= ch.progressRange[1]) {
-          newChapter = ch.id;
+      // Track active chapter for counter badge
+      const activeP = currentProgressRef.current;
+      let curIdx = 0;
+      for (let i = 0; i < STORY_CHAPTERS.length; i++) {
+        if (activeP >= STORY_CHAPTERS[i].startProgress && activeP <= STORY_CHAPTERS[i].endProgress) {
+          curIdx = i;
           break;
         }
       }
 
-      if (newChapter !== lastReportedChapterRef.current) {
-        lastReportedChapterRef.current = newChapter;
-        setActiveChapterId(newChapter);
+      if (curIdx !== lastReportedChapterRef.current) {
+        lastReportedChapterRef.current = curIdx;
+        setActiveChapterIndex(curIdx);
       }
 
-      const shouldShowCta = p >= 0.84;
-      setIsCtaVisible(shouldShowCta);
+      // Reveal CTA when final kurthi hero moment is reached
+      setIsCtaVisible(activeP >= 0.85);
 
       rafIdRef.current = requestAnimationFrame(renderLoop);
     };
@@ -418,181 +484,498 @@ export default function ScrollStory() {
     };
   }, [drawFrameToCanvas, handleResize, preloadFrame, updatePreloadQueue, scrollHintVisible]);
 
-  // Reduced motion accessible fallback view
+  // Reduced motion accessible fallback view (Warm ivory, clean & accessible)
   if (isReducedMotion) {
     return (
-      <section className="relative w-full min-h-[90vh] bg-[#121110] text-ivory flex items-center justify-center px-6 py-20 overflow-hidden">
-        <div className="absolute inset-0 z-0 opacity-60">
-          <img
-            src="/story-sequence/hero_kurthi.webp"
-            alt="Anthurium Handcrafted Kurthi"
-            className="w-full h-full object-cover object-center"
-          />
-          <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/50 to-transparent" />
-        </div>
-        <div className="relative z-10 max-w-4xl mx-auto w-full space-y-6">
-          <div className="inline-flex items-center space-x-2 bg-white/10 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-white/20">
-            <Sparkles className="w-3.5 h-3.5 text-champagne" />
-            <span className="text-[11px] font-bold uppercase tracking-[0.25em] text-white">
-              05 / THE FINAL PIECE
-            </span>
+      <section className="relative w-full min-h-[90vh] bg-[#FAF7F2] text-charcoal flex items-center justify-center px-6 py-20 overflow-hidden border-y border-rose-100/60">
+        <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+          <div className="space-y-6">
+            <div className="inline-flex items-center space-x-2 bg-rose-100/80 px-3.5 py-1.5 rounded-full border border-rose-200/60">
+              <Sparkles className="w-3.5 h-3.5 text-rose-700" />
+              <span className="text-[11px] font-bold uppercase tracking-[0.25em] text-rose-900">
+                05 / THE FINAL PIECE
+              </span>
+            </div>
+            <h2 className="font-editorial text-4xl sm:text-6xl font-bold text-botanical leading-[1.08]">
+              FROM OUR HANDS,<br />TO HERS.
+            </h2>
+            <p className="text-base sm:text-lg text-charcoal/80 max-w-lg leading-relaxed font-light">
+              A piece of craftsmanship, made to become part of her story.
+            </p>
+            <div className="text-xs uppercase tracking-[0.3em] font-semibold text-rose-800 pt-1">
+              WEAR YOUR STORY.
+            </div>
+            <div className="pt-3">
+              <Link
+                href="/shop?category=kurtis"
+                prefetch={true}
+                className="inline-flex items-center space-x-3 bg-botanical hover:bg-botanical-dark text-ivory px-9 py-4 rounded-full text-xs font-bold uppercase tracking-[0.2em] shadow-xl transition transform hover:scale-105 active:scale-95"
+              >
+                <span>EXPLORE KURTHIS</span>
+                <ArrowRight className="w-4 h-4 text-champagne" />
+              </Link>
+            </div>
           </div>
-          <h2 className="font-editorial text-4xl sm:text-6xl lg:text-7xl font-bold text-white leading-[1.05]">
-            FROM OUR HANDS,<br />TO HERS.
-          </h2>
-          <p className="text-base sm:text-xl text-white/80 max-w-lg leading-relaxed font-light">
-            A piece of craftsmanship, made to become part of her story.
-          </p>
-          <div className="text-xs uppercase tracking-[0.3em] font-semibold text-champagne pt-2">
-            WEAR YOUR STORY.
-          </div>
-          <div className="pt-4">
-            <Link
-              href="/shop?category=kurtis"
-              prefetch={true}
-              className="inline-flex items-center space-x-3 bg-botanical hover:bg-botanical-dark text-ivory px-9 py-4 rounded-full text-xs font-bold uppercase tracking-[0.2em] shadow-2xl transition transform hover:scale-105 active:scale-95"
-            >
-              <span>EXPLORE KURTHIS</span>
-              <ArrowRight className="w-4 h-4 text-champagne" />
-            </Link>
+          <div className="relative rounded-3xl overflow-hidden shadow-xl aspect-[16/9] bg-warm-beige border border-rose-100">
+            <img
+              src="/story-sequence/hero_kurthi.webp"
+              alt="Anthurium Handcrafted Kurthi"
+              className="w-full h-full object-cover object-center"
+            />
           </div>
         </div>
       </section>
     );
   }
 
-  const activeChapter = STORY_CHAPTERS.find(ch => ch.id === activeChapterId) || STORY_CHAPTERS[0];
+  // Standard chapter transform calculation
+  const getChapterTransform = (ch: StoryChapter, p: number) => {
+    if (p < ch.startProgress || p > ch.endProgress) {
+      return { opacity: 0, translateY: 24, isVisible: false };
+    }
 
-  // Responsive typography placement
-  const getDesktopPlacementClasses = (pos: StoryChapter['position']) => {
+    let opacity = 1;
+    let translateY = 0;
+
+    if (p < ch.peakStart) {
+      const t = (p - ch.startProgress) / (ch.peakStart - ch.startProgress || 0.01);
+      opacity = Math.max(0, Math.min(1, t));
+      translateY = Math.round((1 - t) * 20);
+    } else if (p > ch.peakEnd) {
+      const t = (p - ch.peakEnd) / (ch.endProgress - ch.peakEnd || 0.01);
+      opacity = Math.max(0, Math.min(1, 1 - t));
+      translateY = Math.round(-t * 15);
+    }
+
+    return { opacity, translateY, isVisible: opacity > 0.01 };
+  };
+
+  // Chapter 03 SPECIAL SEQUENTIAL TRANSFORMS:
+  // Layer 1: Eyebrow fades in first (0.340..0.380), holds, exits last (0.620..0.660)
+  // Layer 2: Main Heading fades + 12px upward movement (0.385..0.425), holds, exits (0.580..0.620)
+  // Layer 3: Supporting copy fades in (0.430..0.470), holds, exits (0.540..0.580)
+  // Layer 4: Secondary line fades in last (0.475..0.510), exits first (0.510..0.540)
+  // Reverses sequence on scroll-out; no bouncing, no scaling.
+  const getChapter3SequentialTransforms = (p: number) => {
+    const calcLayer = (
+      enterStart: number,
+      enterEnd: number,
+      exitStart: number,
+      exitEnd: number,
+      translateDistance: number = 0
+    ) => {
+      if (p < enterStart || p > exitEnd) {
+        return { opacity: 0, translateY: translateDistance };
+      }
+      if (p < enterEnd) {
+        const t = (p - enterStart) / (enterEnd - enterStart || 0.01);
+        return {
+          opacity: Math.max(0, Math.min(1, t)),
+          translateY: Math.round((1 - t) * translateDistance)
+        };
+      }
+      if (p > exitStart) {
+        const t = (p - exitStart) / (exitEnd - exitStart || 0.01);
+        return {
+          opacity: Math.max(0, Math.min(1, 1 - t)),
+          translateY: Math.round(-t * (translateDistance > 0 ? 8 : 0))
+        };
+      }
+      return { opacity: 1, translateY: 0 };
+    };
+
+    const eyebrow = calcLayer(0.340, 0.380, 0.620, 0.660, 0);
+    const heading = calcLayer(0.385, 0.425, 0.580, 0.620, 12);
+    const supporting = calcLayer(0.430, 0.470, 0.540, 0.580, 0);
+    const secondary = calcLayer(0.475, 0.510, 0.510, 0.540, 0);
+
+    const isVisible =
+      eyebrow.opacity > 0.01 ||
+      heading.opacity > 0.01 ||
+      supporting.opacity > 0.01 ||
+      secondary.opacity > 0.01;
+
+    return { eyebrow, heading, supporting, secondary, isVisible };
+  };
+
+  // Helper to generate dynamic, subtle directional black gradient overlay (.story-overlay)
+  // Functions as cinematic light shaping behind the active typography safe zone
+  const getActiveOverlayGradient = (chIdx: number, isMobile: boolean): string => {
+    if (isMobile) {
+      if (chIdx === 0) {
+        // Chapter 01: Top-positioned text -> Soft top-down gradient
+        return 'linear-gradient(180deg, rgba(0,0,0,0.52) 0%, rgba(0,0,0,0.32) 18%, rgba(0,0,0,0.12) 34%, rgba(0,0,0,0.02) 46%, transparent 58%)';
+      } else if (chIdx === 2) {
+        // Chapter 03: Dual delicate safe zones (Top for heading, Bottom for craft text)
+        // Center 40%..60% remains 100% natural, bright & vivid for needle & floral embroidery
+        return 'linear-gradient(180deg, rgba(0,0,0,0.48) 0%, rgba(0,0,0,0.26) 16%, rgba(0,0,0,0.08) 28%, transparent 40%), linear-gradient(0deg, rgba(0,0,0,0.54) 0%, rgba(0,0,0,0.30) 18%, rgba(0,0,0,0.08) 28%, transparent 42%)';
+      } else {
+        // Chapters 02, 04, 05: Bottom-positioned text -> Soft bottom-up gradient
+        return 'linear-gradient(0deg, rgba(0,0,0,0.56) 0%, rgba(0,0,0,0.34) 22%, rgba(0,0,0,0.14) 38%, rgba(0,0,0,0.03) 50%, transparent 62%)';
+      }
+    } else {
+      if (chIdx === 1) {
+        // Chapter 02: Right-positioned text -> Soft right-to-left gradient
+        return 'linear-gradient(270deg, rgba(0,0,0,0.62) 0%, rgba(0,0,0,0.40) 18%, rgba(0,0,0,0.16) 32%, rgba(0,0,0,0.03) 44%, transparent 56%)';
+      } else if (chIdx === 4) {
+        // Chapter 05: Soft left-side gradient leaving the centered kurthi brightly lit
+        return 'linear-gradient(90deg, rgba(0,0,0,0.60) 0%, rgba(0,0,0,0.38) 18%, rgba(0,0,0,0.14) 32%, rgba(0,0,0,0.02) 44%, transparent 55%)';
+      } else {
+        // Chapters 01, 03, 04: Left-positioned text -> Multi-stop luxury editorial shadow
+        // rgba(0,0,0,0.62) -> rgba(0,0,0,0.40) -> rgba(0,0,0,0.16) -> rgba(0,0,0,0.03) -> transparent
+        return 'linear-gradient(90deg, rgba(0,0,0,0.62) 0%, rgba(0,0,0,0.40) 18%, rgba(0,0,0,0.16) 32%, rgba(0,0,0,0.03) 44%, transparent 56%)';
+      }
+    }
+  };
+
+  const currentP = currentProgressRef.current;
+  const activeChapter = STORY_CHAPTERS[activeChapterIndex] || STORY_CHAPTERS[0];
+  const ch3Sequence = getChapter3SequentialTransforms(currentP);
+
+  // Helper for responsive typography placement on Desktop vs Mobile
+  const getDesktopPlacementClasses = (pos: StoryChapter['desktopPosition'], isCh3: boolean = false) => {
+    if (isCh3) {
+      // Chapter 03: Restrained left-side safe zone (max 35-40% viewport width)
+      return 'md:bottom-28 lg:bottom-32 md:left-14 lg:left-24 md:max-w-[420px] md:text-left md:items-start';
+    }
     switch (pos) {
       case 'top-left':
-        return 'top-20 sm:top-28 left-6 sm:left-12 lg:left-24 max-w-xl text-left items-start';
+        return 'md:top-24 md:left-14 lg:left-24 md:max-w-[420px] md:text-left md:items-start';
       case 'top-right':
-        return 'top-20 sm:top-28 left-6 sm:left-auto sm:right-12 lg:right-24 max-w-xl text-left sm:text-right items-start sm:items-end';
+        return 'md:top-24 md:left-auto md:right-14 lg:right-24 md:max-w-[420px] md:text-right md:items-end';
       case 'bottom-left':
-        return 'bottom-20 sm:bottom-28 left-6 sm:left-12 lg:left-24 max-w-xl text-left items-start';
+        return 'md:bottom-28 lg:bottom-32 md:left-14 lg:left-24 md:max-w-[420px] md:text-left md:items-start';
       case 'center-left':
-        return 'bottom-16 sm:bottom-auto sm:top-1/2 sm:-translate-y-1/2 left-6 sm:left-12 lg:left-24 max-w-2xl text-left items-start';
+        return 'md:top-1/2 md:-translate-y-1/2 md:left-14 lg:left-24 md:max-w-[440px] md:text-left md:items-start';
       default:
-        return 'top-24 left-12 max-w-xl text-left items-start';
+        return 'md:top-24 md:left-14 lg:left-24 md:max-w-[420px] md:text-left md:items-start';
+    }
+  };
+
+  const getMobilePlacementClasses = (pos: StoryChapter['mobilePosition']) => {
+    switch (pos) {
+      case 'top':
+        return 'top-14 sm:top-16 inset-x-5 sm:inset-x-8 max-w-[88vw] text-left items-start';
+      case 'bottom':
+        return 'bottom-12 sm:bottom-14 inset-x-5 sm:inset-x-8 max-w-[88vw] text-left items-start';
+      default:
+        return 'top-14 sm:top-16 inset-x-5 sm:inset-x-8 max-w-[88vw] text-left items-start';
     }
   };
 
   return (
     <section
       ref={containerRef}
-      className="relative w-full bg-[#121110] text-white"
-      // Tall scroll track for luxury pacing: Desktop: 260vh, Tablet: 210vh, Mobile: 175vh
-      style={{ minHeight: '260vh' }}
+      className="relative w-full bg-[#FAF7F2] text-charcoal"
+      // Extended scroll track for slow, luxurious cinematic pacing:
+      // Desktop: 280vh, Tablet: 230vh, Mobile: 210vh
+      style={{ minHeight: isMobileState ? '210vh' : '280vh' }}
     >
-      {/* Top Breathing Space Gradient (Smooth transition from normal ecommerce page into cinematic film) */}
-      <div className="w-full h-16 sm:h-24 bg-gradient-to-b from-ivory via-ivory/50 to-[#121110] absolute -top-16 sm:-top-24 left-0 right-0 pointer-events-none z-10" />
-
-      {/* FULLSCREEN STICKY CINEMATIC VIEWPORT */}
-      <div className="sticky top-0 h-[100svh] w-full overflow-hidden select-none">
-
-        {/* EDGE-TO-EDGE HIGH-PERFORMANCE CANVAS */}
+      {/* FULLSCREEN STICKY CINEMATIC VIEWPORT (100svh modern viewport units) */}
+      <div
+        className="sticky top-0 w-full overflow-hidden select-none bg-[#FAF7F2]"
+        style={{ height: '100svh' }}
+      >
+        {/* EDGE-TO-EDGE HIGH-PERFORMANCE CANVAS (Natural video frame rendering) */}
         <canvas
           ref={canvasRef}
           className="absolute inset-0 w-full h-full block object-cover z-0"
           style={{ touchAction: 'pan-y' }}
         />
 
-        {/* SUBTLE CINEMATIC OVERLAYS (Ensures typography readability without darkening footage) */}
-        <div className="absolute inset-0 z-10 pointer-events-none bg-gradient-to-t from-black/65 via-transparent to-black/45" />
-        <div className="absolute inset-0 z-10 pointer-events-none bg-gradient-to-r from-black/40 via-transparent to-transparent hidden md:block" />
+        {/* SOPHISTICATED BLACK CINEMATIC DIRECTIONAL OVERLAY (.story-overlay) */}
+        {/* Pointer-events: none. Exists only behind the active typography safe zone */}
+        {/* Leaves the craftsmanship, needle, fabric and embroidery 100% natural and bright */}
+        <div
+          className="story-overlay absolute inset-0 pointer-events-none transition-all duration-700 ease-out z-10"
+          style={{
+            background: getActiveOverlayGradient(activeChapterIndex, isMobileState)
+          }}
+        />
 
-        {/* INITIAL EDITORIAL LOADER (Fades out when frame 0 is drawn) */}
+        {/* INITIAL EDITORIAL LOADER (Fades out when frame 0 is ready) */}
         {!isFirstFrameLoaded && (
-          <div className="absolute inset-0 bg-[#121110] flex flex-col items-center justify-center z-40 space-y-4 transition-opacity duration-700">
-            <span className="text-xs font-bold uppercase tracking-[0.35em] text-champagne">
+          <div className="absolute inset-0 bg-[#FAF7F2] flex flex-col items-center justify-center z-40 space-y-3 transition-opacity duration-700">
+            <span className="text-[10px] sm:text-xs font-bold uppercase tracking-[0.35em] text-botanical">
               ANTHURIUM
             </span>
-            <span className="font-editorial text-lg sm:text-xl italic text-white/90">
+            <span className="font-editorial text-base sm:text-lg italic text-rose-800">
               Crafting the story...
             </span>
-            <div className="w-28 h-[1.5px] bg-white/20 overflow-hidden rounded-full">
-              <div className="w-full h-full bg-champagne animate-pulse" />
+            <div className="w-24 h-[1.5px] bg-rose-200 overflow-hidden rounded-full">
+              <div className="w-full h-full bg-rose-600 animate-pulse" />
             </div>
           </div>
         )}
 
-        {/* TOP STATUS BAR: BRAND EYE受信 & CHAPTER PROGRESS COUNTER */}
-        <div className="absolute top-6 sm:top-8 left-6 sm:left-12 right-6 sm:right-12 z-30 flex items-center justify-between pointer-events-none">
+        {/* TOP STATUS BAR: Subtle brand tag + minimal chapter counter (Safe-area aware) */}
+        <div
+          className="absolute top-4 sm:top-8 left-5 sm:left-12 right-5 sm:right-12 z-30 flex items-center justify-between pointer-events-none"
+          style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}
+        >
           {/* Subtle Brand Tag */}
-          <div className="flex items-center space-x-2 text-[10px] sm:text-xs font-bold uppercase tracking-[0.3em] text-white/70">
+          <div className="flex items-center space-x-2 text-[9px] sm:text-[10px] font-bold uppercase tracking-[0.28em] text-[#E8D3BA] drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)]">
             <span className="w-1.5 h-1.5 rounded-full bg-champagne animate-pulse inline-block" />
-            <span>CRAFTED WITH INTENTION</span>
+            <span>ANTHURIUM ATELIER</span>
           </div>
 
-          {/* Premium Chapter Numbering (e.g. 03 — 05) */}
-          <div className="flex items-center space-x-2 px-4 py-1.5 rounded-full bg-black/40 backdrop-blur-md border border-white/15 text-white shadow-xl">
-            <span className="font-mono text-xs sm:text-sm font-semibold text-white tracking-widest">
+          {/* Minimal Chapter Counter (e.g. 03 — 05) */}
+          <div className="flex items-center space-x-2 px-3 sm:px-3.5 py-1 rounded-full bg-black/40 backdrop-blur-md border border-white/15 shadow-md">
+            <span className="font-mono text-xs sm:text-sm font-semibold text-ivory tracking-widest transition-all duration-300">
               {activeChapter.chapterNumber}
             </span>
-            <span className="text-white/40 text-xs">—</span>
+            <span className="text-white/30 text-xs">—</span>
             <span className="font-mono text-xs sm:text-sm text-white/50 tracking-widest">
               05
             </span>
           </div>
         </div>
 
-        {/* INTEGRATED EDITORIAL TYPOGRAPHY OVERLAY */}
-        <div
-          key={activeChapter.id}
-          className={`absolute z-20 flex flex-col pointer-events-none transition-all duration-700 ease-out animate-fadeIn ${getDesktopPlacementClasses(activeChapter.position)}`}
-        >
-          {/* Eyebrow */}
-          <div className="inline-flex items-center space-x-2 mb-2 sm:mb-3">
-            <span className="text-[10px] sm:text-xs font-bold uppercase tracking-[0.3em] text-champagne">
-              {activeChapter.eyebrow}
-            </span>
-          </div>
+        {/* OVERLAPPING EDITORIAL CHAPTER TYPOGRAPHY */}
+        {STORY_CHAPTERS.map((ch) => {
+          // CHAPTER 03 SPECIAL EDITORIAL TREATMENT:
+          // 1. NO CARD / NO GLASSMORPHISM / NO RECTANGLE
+          // 2. Warm ivory typography sitting directly in the photographic shadow
+          // 3. Sequential 4-layer fade & upward reveal with pauses: Eyebrow -> Heading (12px rise) -> Supporting text -> Secondary line
+          // 4. On Mobile: Header at top safe area, Supporting text at bottom safe area, Needle & embroidery in center completely visible!
+          // 5. On Desktop: Grouped in left safe zone (occupying ~35-40% viewport width)
+          if (ch.id === 3) {
+            if (!ch3Sequence.isVisible) return null;
 
-          {/* Editorial Headline */}
-          <h2
-            className="font-editorial font-bold text-white tracking-tight leading-[1.05] whitespace-pre-line drop-shadow-md text-3xl sm:text-5xl lg:text-6xl xl:text-7xl mb-3 sm:mb-4"
-          >
-            {activeChapter.heading}
-          </h2>
+            if (isMobileState) {
+              return (
+                <React.Fragment key={ch.id}>
+                  {/* MOBILE TOP BLOCK: Eyebrow & Heading in upper safe zone */}
+                  <div
+                    className="absolute z-20 flex flex-col pointer-events-none top-14 sm:top-16 inset-x-0"
+                    style={{
+                      paddingLeft: 'clamp(20px, 6vw, 32px)',
+                      paddingRight: 'clamp(20px, 6vw, 32px)'
+                    }}
+                  >
+                    <div className="space-y-1.5 pointer-events-none max-w-[88vw]">
+                      {/* Layer 1: Eyebrow (appears 1st, exits last) */}
+                      <div
+                        style={{
+                          opacity: ch3Sequence.eyebrow.opacity
+                        }}
+                        className="transition-opacity duration-300 ease-out"
+                      >
+                        <span className="text-[9.5px] font-bold uppercase tracking-[0.2em] text-[#E8D3BA] drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)]">
+                          {ch.eyebrow}
+                        </span>
+                      </div>
 
-          {/* Supporting Copy */}
-          <p className="text-sm sm:text-base lg:text-lg text-white/85 max-w-md leading-relaxed font-light drop-shadow-sm mb-3">
-            {activeChapter.supportingText}
-          </p>
+                      {/* Layer 2: Main Heading (appears 2nd with 12px upward movement, exits 2nd) */}
+                      <div
+                        style={{
+                          opacity: ch3Sequence.heading.opacity,
+                          transform: `translateY(${ch3Sequence.heading.translateY}px)`
+                        }}
+                        className="transition-transform duration-300 ease-out"
+                      >
+                        <h2
+                          style={{ fontSize: 'clamp(32px, 9vw, 44px)', lineHeight: 1.02 }}
+                          className="font-editorial font-bold text-[#FFFDF9] tracking-tight drop-shadow-[0_2px_8px_rgba(0,0,0,0.6)]"
+                        >
+                          {ch.mobileHeading || ch.heading}
+                        </h2>
+                      </div>
+                    </div>
+                  </div>
 
-          {/* Small Detail Tag */}
-          <div className="text-[10px] sm:text-xs uppercase tracking-[0.25em] font-semibold text-white/60">
-            {activeChapter.detailLine}
-          </div>
+                  {/* MOBILE BOTTOM BLOCK: Supporting text & secondary detail line in lower safe zone */}
+                  <div
+                    className="absolute z-20 flex flex-col pointer-events-none bottom-12 sm:bottom-14 inset-x-0"
+                    style={{
+                      paddingLeft: 'clamp(20px, 6vw, 32px)',
+                      paddingRight: 'clamp(20px, 6vw, 32px)'
+                    }}
+                  >
+                    <div className="space-y-1.5 pointer-events-none max-w-[88vw]">
+                      {/* Layer 3: Supporting Copy (appears 3rd, exits 2nd) */}
+                      <div
+                        style={{
+                          opacity: ch3Sequence.supporting.opacity
+                        }}
+                        className="transition-opacity duration-300 ease-out"
+                      >
+                        <p
+                          style={{ fontSize: 'clamp(13px, 3.8vw, 15px)', lineHeight: 1.5 }}
+                          className="text-[#F5EFEB]/90 font-light whitespace-pre-line drop-shadow-[0_1px_3px_rgba(0,0,0,0.5)]"
+                        >
+                          {ch.mobileSupportingText || ch.supportingText}
+                        </p>
+                      </div>
 
-          {/* Final Hero Call-to-Action (Revealed on Chapter 5) */}
-          {activeChapter.id === 5 && isCtaVisible && (
-            <div className="pt-6 sm:pt-8 pointer-events-auto">
-              <Link
-                href="/shop?category=kurtis"
-                prefetch={true}
-                className="inline-flex items-center space-x-3 bg-botanical hover:bg-botanical-dark text-ivory px-9 py-4 sm:py-4.5 rounded-full text-xs font-bold uppercase tracking-[0.2em] shadow-2xl border border-white/20 transition-all duration-300 transform hover:scale-105 active:scale-95"
-                style={{ minHeight: '48px' }}
+                      {/* Layer 4: Secondary Detail Line (appears last, exits 1st) */}
+                      <div
+                        style={{
+                          opacity: ch3Sequence.secondary.opacity
+                        }}
+                        className="transition-opacity duration-300 ease-out"
+                      >
+                        <div className="text-[9.5px] uppercase tracking-[0.22em] font-semibold text-[#E8D3BA]/90 pt-0.5 drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)]">
+                          {ch.detailLine}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </React.Fragment>
+              );
+            }
+
+            // DESKTOP: Grouped inside left-side photographic safe zone (~35-40% viewport width)
+            return (
+              <div
+                key={ch.id}
+                className={`absolute z-20 flex flex-col pointer-events-none ${getDesktopPlacementClasses(
+                  ch.desktopPosition,
+                  true
+                )}`}
+                style={{
+                  paddingLeft: 'clamp(24px, 4vw, 48px)'
+                }}
               >
-                <span>EXPLORE KURTHIS</span>
-                <ArrowRight className="w-4 h-4 text-champagne" />
-              </Link>
-            </div>
-          )}
-        </div>
+                <div className="space-y-3 pointer-events-none max-w-[420px]">
+                  {/* Layer 1: Eyebrow (appears 1st, exits last) */}
+                  <div
+                    style={{
+                      opacity: ch3Sequence.eyebrow.opacity
+                    }}
+                    className="transition-opacity duration-300 ease-out"
+                  >
+                    <span className="text-[11px] font-bold uppercase tracking-[0.28em] text-[#E8D3BA] drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)]">
+                      {ch.eyebrow}
+                    </span>
+                  </div>
 
-        {/* BOTTOM SCROLL INDICATOR (Fades out when scrolling begins) */}
+                  {/* Layer 2: Main Heading (appears 2nd with 12px upward movement, exits 2nd) */}
+                  <div
+                    style={{
+                      opacity: ch3Sequence.heading.opacity,
+                      transform: `translateY(${ch3Sequence.heading.translateY}px)`
+                    }}
+                    className="transition-transform duration-300 ease-out"
+                  >
+                    <h2 className="font-editorial font-bold text-[#FFFDF9] tracking-tight leading-[1.04] text-4xl lg:text-5xl drop-shadow-[0_2px_8px_rgba(0,0,0,0.6)]">
+                      {ch.heading}
+                    </h2>
+                  </div>
+
+                  {/* Layer 3: Supporting Copy (appears 3rd, exits 2nd) */}
+                  <div
+                    style={{
+                      opacity: ch3Sequence.supporting.opacity
+                    }}
+                    className="transition-opacity duration-300 ease-out pt-1"
+                  >
+                    <p className="text-sm lg:text-base text-[#F5EFEB]/90 leading-relaxed font-light whitespace-pre-line drop-shadow-[0_1px_3px_rgba(0,0,0,0.5)]">
+                      {ch.supportingText}
+                    </p>
+                  </div>
+
+                  {/* Layer 4: Secondary Detail Line (appears last, exits 1st) */}
+                  <div
+                    style={{
+                      opacity: ch3Sequence.secondary.opacity
+                    }}
+                    className="transition-opacity duration-300 ease-out"
+                  >
+                    <div className="text-xs uppercase tracking-[0.24em] font-semibold text-[#E8D3BA]/90 pt-1 drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)]">
+                      {ch.detailLine}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          }
+
+          // Chapters 01, 02, 04, 05: Editorial Typography sitting directly in photographic light-shaping shadow
+          // ZERO cards, ZERO borders, ZERO glassmorphic boxes
+          const { opacity, translateY, isVisible } = getChapterTransform(ch, currentP);
+          if (!isVisible) return null;
+
+          return (
+            <div
+              key={ch.id}
+              className={`absolute z-20 flex flex-col pointer-events-none transition-transform duration-300 ease-out ${
+                isMobileState
+                  ? getMobilePlacementClasses(ch.mobilePosition)
+                  : getDesktopPlacementClasses(ch.desktopPosition)
+              }`}
+              style={{
+                opacity,
+                transform: `translateY(${translateY}px)`,
+                paddingLeft: isMobileState ? 'clamp(20px, 6vw, 32px)' : 'clamp(24px, 4vw, 48px)',
+                paddingRight: isMobileState ? 'clamp(20px, 6vw, 32px)' : 'clamp(24px, 4vw, 48px)'
+              }}
+            >
+              <div className="space-y-2 sm:space-y-3 max-w-full">
+                {/* Eyebrow */}
+                <div className="inline-flex items-center space-x-2">
+                  <span className="text-[9.5px] sm:text-[11px] font-bold uppercase tracking-[0.2em] sm:tracking-[0.28em] text-[#E8D3BA] drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)]">
+                    {ch.eyebrow}
+                  </span>
+                </div>
+
+                {/* Editorial Headline */}
+                <h2
+                  style={{
+                    fontSize: isMobileState ? 'clamp(32px, 9vw, 44px)' : undefined,
+                    lineHeight: 1.02
+                  }}
+                  className="font-editorial font-bold text-[#FFFDF9] tracking-tight drop-shadow-[0_2px_8px_rgba(0,0,0,0.55)] whitespace-pre-line text-3xl sm:text-4xl lg:text-5xl"
+                >
+                  {isMobileState && ch.mobileHeading ? ch.mobileHeading : ch.heading}
+                </h2>
+
+                {/* Supporting Copy */}
+                <p
+                  style={{
+                    fontSize: isMobileState ? 'clamp(13px, 3.8vw, 15px)' : undefined,
+                    lineHeight: 1.5
+                  }}
+                  className="text-[#F5EFEB]/90 font-light whitespace-pre-line drop-shadow-[0_1px_3px_rgba(0,0,0,0.45)] text-xs sm:text-sm lg:text-base max-w-sm lg:max-w-md"
+                >
+                  {isMobileState && ch.mobileSupportingText ? ch.mobileSupportingText : ch.supportingText}
+                </p>
+
+                {/* Small Detail Line */}
+                {ch.detailLine && (
+                  <div className="text-[9.5px] sm:text-xs uppercase tracking-[0.22em] font-semibold text-[#E8D3BA]/90 pt-1 drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)]">
+                    {ch.detailLine}
+                  </div>
+                )}
+
+                {/* Final Hero Call-to-Action (Revealed on Chapter 5) */}
+                {ch.id === 5 && isCtaVisible && (
+                  <div className="pt-4 sm:pt-6 pointer-events-auto">
+                    <Link
+                      href="/shop?category=kurtis"
+                      prefetch={true}
+                      className="inline-flex items-center space-x-3 bg-botanical hover:bg-botanical-dark text-ivory px-8 sm:px-10 py-3.5 sm:py-4 rounded-full text-xs font-bold uppercase tracking-[0.22em] shadow-2xl border border-champagne/40 transition-all duration-300 transform hover:scale-105 active:scale-95"
+                      style={{ minHeight: '48px' }}
+                    >
+                      <span>EXPLORE KURTHIS</span>
+                      <ArrowRight className="w-4 h-4 text-champagne" />
+                    </Link>
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+        })}
+
+        {/* BOTTOM SCROLL INDICATOR (Subtle warm indicator, disappears smoothly on scroll) */}
         {scrollHintVisible && (
-          <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-30 flex flex-col items-center space-y-2 pointer-events-none transition-opacity duration-500">
-            <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.3em] text-white/80">
+          <div className="absolute bottom-5 sm:bottom-8 left-1/2 -translate-x-1/2 z-30 flex flex-col items-center space-y-1.5 pointer-events-none transition-opacity duration-500">
+            <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-[0.25em] text-[#E8D3BA]/90 drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)]">
               SCROLL TO DISCOVER
             </span>
-            <div className="w-[1.5px] h-8 bg-gradient-to-b from-white via-white/40 to-transparent animate-pulse" />
+            <div className="w-[1.5px] h-6 sm:h-8 bg-gradient-to-b from-[#E8D3BA] via-[#E8D3BA]/40 to-transparent animate-pulse" />
           </div>
         )}
-
       </div>
     </section>
   );
