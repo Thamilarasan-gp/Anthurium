@@ -73,6 +73,12 @@ export default function HomePage() {
     sideText: 'Good Outfits. Better Moods.',
     displayOrder: 1,
     isActive: true,
+    audioTrack: {
+      title: 'Anthurium Vibes',
+      subtitle: 'Good Outfits. Better Moods.',
+      audioUrl: 'https://res.cloudinary.com/jrpuc4bx/video/upload/v1789064520/anthurium/audio/td68wsn1jujiaxhr2huc.mp3',
+      thumbnailUrl: 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=300&q=80'
+    },
     createdAt: '',
     updatedAt: ''
   };
@@ -92,10 +98,17 @@ export default function HomePage() {
   const handlePlayStoryAudio = () => {
     if (isPlaying) {
       togglePlay();
-    } else if (hero.audioTrack?.audioUrl) {
-      playTrack(hero.audioTrack);
     } else {
-      togglePlay();
+      const trackToPlay = hero.audioTrack?.audioUrl ? hero.audioTrack : undefined;
+      if (trackToPlay) {
+        playTrack(trackToPlay);
+      } else {
+        togglePlay();
+      }
+      const storyEl = document.getElementById('our-story-section');
+      if (storyEl) {
+        storyEl.scrollIntoView({ behavior: 'smooth' });
+      }
     }
   };
 
@@ -173,7 +186,7 @@ export default function HomePage() {
               <button
                 onClick={handlePlayStoryAudio}
                 className="bg-white/90 hover:bg-white text-botanical px-6 py-4 rounded-full text-xs font-bold uppercase tracking-widest shadow-lg flex items-center space-x-2 border border-rose-200/60 transition cursor-pointer"
-                title={hero.audioTrack?.title ? `Play: ${hero.audioTrack.title}` : 'Play ambient audio'}
+                title={hero.audioTrack?.title ? `Play: ${hero.audioTrack.title}` : 'Play Our Story'}
               >
                 {isPlaying ? (
                   <Pause className="w-3.5 h-3.5 text-rose-600 animate-pulse" />
@@ -181,7 +194,7 @@ export default function HomePage() {
                   <Play className="w-3.5 h-3.5 text-rose-600" />
                 )}
                 <span>
-                  {isPlaying ? 'Pause Ambient Sound' : hero.secondaryCtaText || 'Play Our Story'}
+                  {isPlaying ? 'Pause Our Story' : hero.secondaryCtaText || 'Play Our Story'}
                 </span>
               </button>
             </div>

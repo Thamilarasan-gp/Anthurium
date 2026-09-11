@@ -34,12 +34,6 @@ export default function MoodPage() {
 
   const handleSelectMood = (mood: Mood) => {
     setActiveMood(mood);
-    playTrack({
-      title: `${mood.name} Mood`,
-      subtitle: mood.tagline,
-      audioUrl: mood.audioUrl,
-      thumbnailUrl: mood.bgImageUrl
-    });
   };
 
   return (

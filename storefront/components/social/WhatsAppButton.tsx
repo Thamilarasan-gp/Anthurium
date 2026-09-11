@@ -1,7 +1,8 @@
 'use client';
 
 import React from 'react';
-import { MessageCircle } from 'lucide-react';
+import Image from 'next/image';
+import whatsappIcon from '@/lib/imgs/WhatsApp_icon.png';
 import { useStoreConfig } from '../providers/StoreConfigContext';
 
 export const WhatsAppButton: React.FC = () => {
@@ -16,14 +17,18 @@ export const WhatsAppButton: React.FC = () => {
       href={whatsappUrl}
       target="_blank"
       rel="noopener noreferrer"
-      className="fixed bottom-6 right-6 z-40 bg-green-600 hover:bg-emerald-700 text-white p-3 rounded-full shadow-2xl transition transform hover:scale-110 flex items-center justify-center space-x-2 group border border-emerald-400/30"
+      className="fixed bottom-6 right-6 z-40 transition-transform duration-300 transform hover:scale-110 active:scale-95 flex items-center justify-center filter drop-shadow-2xl"
       aria-label="Chat on WhatsApp"
       title="Chat with Anthurium Boutique"
     >
-      <MessageCircle className="w-6 h-6 fill-white/20" />
-      <span className="max-w-0 overflow-hidden group-hover:max-w-xs transition-all duration-500 ease-in-out text-xs font-bold uppercase tracking-wider whitespace-nowrap pr-0">
-        Chat on WhatsApp
-      </span>
+      <Image
+        src={whatsappIcon}
+        alt="Chat on WhatsApp"
+        width={58}
+        height={58}
+        className="w-14 h-14 object-contain"
+        priority
+      />
     </a>
   );
 };

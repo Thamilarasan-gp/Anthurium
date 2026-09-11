@@ -689,9 +689,8 @@ export default function ScrollStory() {
                 <React.Fragment key={ch.id}>
                   {/* MOBILE TOP BLOCK: Eyebrow & Heading in upper safe zone */}
                   <div
-                    className={`absolute z-20 flex flex-col pointer-events-none top-14 sm:top-16 inset-x-0 transition-all duration-500 ease-out ${
-                      isActive ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2 pointer-events-none'
-                    }`}
+                    className={`absolute z-20 flex flex-col pointer-events-none top-14 sm:top-16 inset-x-0 transition-all duration-500 ease-out ${isActive ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2 pointer-events-none'
+                      }`}
                     style={{
                       paddingLeft: 'clamp(20px, 6vw, 32px)',
                       paddingRight: 'clamp(20px, 6vw, 32px)'
@@ -700,9 +699,8 @@ export default function ScrollStory() {
                     <div className="space-y-1.5 pointer-events-none max-w-[88vw]">
                       {/* Layer 1: Eyebrow (appears 1st) */}
                       <div
-                        className={`transition-all duration-500 ease-out ${
-                          isActive ? 'opacity-100 translate-y-0 delay-75' : 'opacity-0 translate-y-2'
-                        }`}
+                        className={`transition-all duration-500 ease-out ${isActive ? 'opacity-100 translate-y-0 delay-75' : 'opacity-0 translate-y-2'
+                          }`}
                       >
                         <span className="text-[9.5px] font-bold uppercase tracking-[0.2em] text-[#E8D3BA] drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)]">
                           {ch.eyebrow}
@@ -711,9 +709,8 @@ export default function ScrollStory() {
 
                       {/* Layer 2: Main Heading */}
                       <div
-                        className={`transition-all duration-500 ease-out ${
-                          isActive ? 'opacity-100 translate-y-0 delay-150' : 'opacity-0 translate-y-2'
-                        }`}
+                        className={`transition-all duration-500 ease-out ${isActive ? 'opacity-100 translate-y-0 delay-150' : 'opacity-0 translate-y-2'
+                          }`}
                       >
                         <h2
                           style={{ fontSize: 'clamp(32px, 9vw, 44px)', lineHeight: 1.02 }}
@@ -727,9 +724,8 @@ export default function ScrollStory() {
 
                   {/* MOBILE BOTTOM BLOCK: Supporting text & secondary detail line in lower safe zone */}
                   <div
-                    className={`absolute z-20 flex flex-col pointer-events-none bottom-12 sm:bottom-14 inset-x-0 transition-all duration-500 ease-out ${
-                      isActive ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2 pointer-events-none'
-                    }`}
+                    className={`absolute z-20 flex flex-col pointer-events-none bottom-12 sm:bottom-14 inset-x-0 transition-all duration-500 ease-out ${isActive ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2 pointer-events-none'
+                      }`}
                     style={{
                       paddingLeft: 'clamp(20px, 6vw, 32px)',
                       paddingRight: 'clamp(20px, 6vw, 32px)'
@@ -738,9 +734,8 @@ export default function ScrollStory() {
                     <div className="space-y-1.5 pointer-events-none max-w-[88vw]">
                       {/* Layer 3: Supporting Copy */}
                       <div
-                        className={`transition-all duration-500 ease-out ${
-                          isActive ? 'opacity-100 translate-y-0 delay-250' : 'opacity-0 translate-y-2'
-                        }`}
+                        className={`transition-all duration-500 ease-out ${isActive ? 'opacity-100 translate-y-0 delay-250' : 'opacity-0 translate-y-2'
+                          }`}
                       >
                         <p
                           style={{ fontSize: 'clamp(13px, 3.8vw, 15px)', lineHeight: 1.5 }}
@@ -752,9 +747,8 @@ export default function ScrollStory() {
 
                       {/* Layer 4: Secondary Detail Line */}
                       <div
-                        className={`transition-all duration-500 ease-out ${
-                          isActive ? 'opacity-100 translate-y-0 delay-350' : 'opacity-0 translate-y-2'
-                        }`}
+                        className={`transition-all duration-500 ease-out ${isActive ? 'opacity-100 translate-y-0 delay-350' : 'opacity-0 translate-y-2'
+                          }`}
                       >
                         <div className="text-[9.5px] uppercase tracking-[0.22em] font-semibold text-[#E8D3BA]/90 pt-0.5 drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)]">
                           {ch.detailLine}
@@ -781,9 +775,8 @@ export default function ScrollStory() {
                 <div className="space-y-3 pointer-events-none max-w-[420px]">
                   {/* Layer 1: Eyebrow */}
                   <div
-                    className={`transition-all duration-500 ease-out ${
-                      isActive ? 'opacity-100 translate-y-0 delay-75' : 'opacity-0 translate-y-2'
-                    }`}
+                    className={`transition-all duration-500 ease-out ${isActive ? 'opacity-100 translate-y-0 delay-75' : 'opacity-0 translate-y-2'
+                      }`}
                   >
                     <span className="text-[11px] font-bold uppercase tracking-[0.28em] text-[#E8D3BA] drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)]">
                       {ch.eyebrow}
@@ -792,9 +785,8 @@ export default function ScrollStory() {
 
                   {/* Layer 2: Main Heading */}
                   <div
-                    className={`transition-all duration-500 ease-out ${
-                      isActive ? 'opacity-100 translate-y-0 delay-150' : 'opacity-0 translate-y-3'
-                    }`}
+                    className={`transition-all duration-500 ease-out ${isActive ? 'opacity-100 translate-y-0 delay-150' : 'opacity-0 translate-y-3'
+                      }`}
                   >
                     <h2 className="font-editorial font-bold text-[#FFFDF9] tracking-tight leading-[1.04] text-4xl lg:text-5xl drop-shadow-[0_2px_12px_rgba(0,0,0,0.85)] drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)]">
                       {ch.heading}
@@ -803,9 +795,8 @@ export default function ScrollStory() {
 
                   {/* Layer 3: Supporting Copy */}
                   <div
-                    className={`transition-all duration-500 ease-out pt-1 ${
-                      isActive ? 'opacity-100 translate-y-0 delay-250' : 'opacity-0 translate-y-2'
-                    }`}
+                    className={`transition-all duration-500 ease-out pt-1 ${isActive ? 'opacity-100 translate-y-0 delay-250' : 'opacity-0 translate-y-2'
+                      }`}
                   >
                     <p className="text-sm lg:text-base text-[#F5EFEB]/90 leading-relaxed font-light whitespace-pre-line drop-shadow-[0_1px_4px_rgba(0,0,0,0.7)]">
                       {ch.supportingText}
@@ -814,9 +805,8 @@ export default function ScrollStory() {
 
                   {/* Layer 4: Secondary Detail Line */}
                   <div
-                    className={`transition-all duration-500 ease-out ${
-                      isActive ? 'opacity-100 translate-y-0 delay-350' : 'opacity-0 translate-y-2'
-                    }`}
+                    className={`transition-all duration-500 ease-out ${isActive ? 'opacity-100 translate-y-0 delay-350' : 'opacity-0 translate-y-2'
+                      }`}
                   >
                     <div className="text-xs uppercase tracking-[0.24em] font-semibold text-[#E8D3BA]/90 pt-1 drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)]">
                       {ch.detailLine}
@@ -833,15 +823,13 @@ export default function ScrollStory() {
           return (
             <div
               key={ch.id}
-              className={`absolute z-20 flex flex-col transition-all duration-500 ease-out ${
-                isMobileState
+              className={`absolute z-20 flex flex-col transition-all duration-500 ease-out ${isMobileState
                   ? getMobilePlacementClasses(ch.mobilePosition, isCh5)
                   : getDesktopPlacementClasses(ch.desktopPosition, false, isCh5)
-              } ${
-                isActive
+                } ${isActive
                   ? 'opacity-100 translate-y-0 pointer-events-auto'
                   : 'opacity-0 translate-y-3 pointer-events-none'
-              }`}
+                }`}
               style={{
                 paddingLeft: isMobileState ? 'clamp(20px, 6vw, 32px)' : 'clamp(24px, 4vw, 48px)',
                 paddingRight: isMobileState ? 'clamp(20px, 6vw, 32px)' : 'clamp(24px, 4vw, 48px)'
@@ -863,9 +851,8 @@ export default function ScrollStory() {
                       : (isMobileState ? 'clamp(32px, 9vw, 44px)' : undefined),
                     lineHeight: isCh5 ? 1.15 : 1.02
                   }}
-                  className={`font-editorial font-bold text-[#FFFDF9] tracking-tight drop-shadow-[0_2px_12px_rgba(0,0,0,0.85)] drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)] whitespace-pre-line ${
-                    isCh5 ? 'text-2xl sm:text-3xl lg:text-4xl' : 'text-3xl sm:text-4xl lg:text-5xl'
-                  }`}
+                  className={`font-editorial font-bold text-[#FFFDF9] tracking-tight drop-shadow-[0_2px_12px_rgba(0,0,0,0.85)] drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)] whitespace-pre-line ${isCh5 ? 'text-2xl sm:text-3xl lg:text-4xl' : 'text-3xl sm:text-4xl lg:text-5xl'
+                    }`}
                 >
                   {isMobileState && ch.mobileHeading ? ch.mobileHeading : ch.heading}
                 </h2>
@@ -891,9 +878,8 @@ export default function ScrollStory() {
                 {/* Final Hero Call-to-Action (Chapter 5) */}
                 {isCh5 && (
                   <div
-                    className={`pt-7 sm:pt-9 transition-all duration-500 ease-out ${
-                      isActive ? 'opacity-100 translate-y-0 pointer-events-auto delay-150' : 'opacity-0 translate-y-2 pointer-events-none'
-                    }`}
+                    className={`pt-7 sm:pt-9 transition-all duration-500 ease-out ${isActive ? 'opacity-100 translate-y-0 pointer-events-auto delay-150' : 'opacity-0 translate-y-2 pointer-events-none'
+                      }`}
                   >
                     <Link
                       href="/shop?category=kurtis"
